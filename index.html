@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quarterly Player Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #222632;
+      --border: #2a2e3b;
+      --border-focus: #6c5ce7;
+      --text: #e4e6ed;
+      --text-muted: #8b8fa3;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --danger: #ff6b6b;
+      --success: #51cf66;
+      --warning: #fcc419;
+      --p0: #ff6b6b;
+      --p1: #ffa94d;
+      --p2: #fcc419;
+      --p3: #69db7c;
+      --na: #868e96;
+      --carry-forward: #748ffc;
+      --ktlo: #da77f2;
+      --scalability: #38d9a9;
+      --product: #ffa94d;
+      --ro-migration: #ff8787;
+      --innovation: #66d9ef;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .app-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .app-subtitle {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .quarter-selector {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      background: var(--surface);
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .quarter-selector label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .quarter-date-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-light);
+      background: rgba(108, 92, 231, 0.1);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid rgba(108, 92, 231, 0.2);
+      white-space: nowrap;
+    }
+
+    .quarter-working-days {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--success);
+      background: rgba(81, 207, 102, 0.08);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    select, input[type="number"], input[type="text"] {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    }
+
+    select { cursor: pointer; }
+
+    input[type="number"] {
+      font-family: 'JetBrains Mono', monospace;
+      width: 90px;
+      text-align: right;
+    }
+
+    .section { margin-bottom: 2.5rem; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-chevron {
+      display: inline-flex;
+      transition: transform 0.25s ease;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 0.25rem;
+    }
+    .section.collapsed .section-chevron { transform: rotate(-90deg); }
+    .section-body {
+      transition: max-height 0.3s ease, opacity 0.25s ease;
+      overflow: hidden;
+    }
+    .section.collapsed .section-body {
+      max-height: 0 !important;
+      opacity: 0;
+      margin: 0;
+      padding: 0;
+    }
+    .section.collapsed .section-header { margin-bottom: 0; }
+
+    .section-title .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .icon-capacity { background: rgba(81, 207, 102, 0.15); color: var(--success); }
+
+    .tshirt-table { max-width: 520px; }
+    .tshirt-table input[type="number"] { width: 70px; text-align: center; }
+    .tshirt-table input.tshirt-error {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 2px rgba(255,107,107,0.25);
+      animation: shake 0.35s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(2px); }
+    }
+    .tshirt-validation-msg {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 0.6rem;
+      min-height: 1.2em;
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      line-height: 1.5;
+      display: none;
+    }
+    .tshirt-validation-msg.visible { display: block; }
+    .tshirt-validation-msg .tshirt-err-icon { margin-right: 0.4rem; }
+    .tshirt-validation-msg .tshirt-err-rule {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    .tshirt-badge {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      min-width: 28px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .tshirt-badge.xs { background: rgba(81,207,102,0.15); color: var(--success); }
+    .tshirt-badge.s  { background: rgba(56,217,169,0.15); color: var(--scalability); }
+    .tshirt-badge.m  { background: rgba(255,169,77,0.15); color: #ffa94d; }
+    .tshirt-badge.l  { background: rgba(108,92,231,0.15); color: var(--accent-light); }
+    .tshirt-badge.xl { background: rgba(255,107,107,0.15); color: var(--danger); }
+    .tshirt-select {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 0.35rem 0.5rem;
+      min-width: 55px;
+    }
+    .tshirt-pair {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      justify-content: center;
+    }
+    .tshirt-pair .tshirt-select { min-width: 46px; font-size: 0.78rem; padding: 0.25rem 0.25rem; }
+    .tshirt-pair .tshirt-count {
+      width: 38px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.15rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+    }
+    .tshirt-pair .tshirt-x {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .icon-initiatives { background: rgba(108, 92, 231, 0.15); color: var(--accent-light); }
+    .icon-gantt { background: rgba(56, 217, 169, 0.15); color: var(--scalability); }
+
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #5b4bd5; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--accent-light);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { background: var(--surface-hover); border-color: var(--accent); }
+    .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline:disabled:hover { background: transparent; border-color: var(--border); }
+
+    .btn .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Jira Config Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 420px;
+      max-width: 90vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal p.modal-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+    .modal label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    .modal input[type="text"],
+    .modal input[type="password"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .modal input:focus { border-color: var(--accent); }
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+    .refresh-status {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .refresh-status.success { display: block; background: rgba(81,207,102,0.12); color: var(--success); }
+    .refresh-status.error { display: block; background: rgba(255,107,107,0.12); color: var(--danger); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .initiatives-table {
+      table-layout: fixed;
+    }
+
+    th {
+      background: rgba(108, 92, 231, 0.08);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface-hover); }
+
+    td select, td input {
+      width: 100%;
+      background: transparent;
+      border-color: transparent;
+    }
+    td select:hover, td input:hover { border-color: var(--border); }
+    td select:focus, td input:focus {
+      background: var(--bg);
+      border-color: var(--border-focus);
+    }
+
+    .capacity-table td input[type="number"] {
+      width: 100%;
+      text-align: center;
+    }
+
+    .pct-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pct-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .pct-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+      background: var(--accent);
+    }
+
+    .pct-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      min-width: 45px;
+      text-align: right;
+      color: var(--text-muted);
+    }
+
+    .cap-breakdown {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .cap-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .cap-chip.over { color: var(--danger); background: rgba(255,107,107,0.1); }
+
+    .est-total-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      text-align: center;
+      color: var(--accent-light);
+      font-size: 0.85rem;
+    }
+
+    th.group-header {
+      text-align: center;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: rgba(108, 92, 231, 0.12);
+      color: var(--accent-light);
+    }
+
+    th.sub-header {
+      font-size: 0.65rem;
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+      background: rgba(108, 92, 231, 0.05);
+    }
+
+    .initiatives-table td input[type="number"] {
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.3rem;
+    }
+
+    .date-range {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .date-range .arrow { color: var(--accent-light); margin: 0 0.3rem; }
+
+    .total-capacity-bar {
+      margin-top: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .total-capacity-bar .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .total-bar {
+      flex: 1;
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .total-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.5s ease;
+      background: linear-gradient(90deg, var(--success), var(--accent));
+    }
+    .total-bar-fill.over { background: linear-gradient(90deg, var(--warning), var(--danger)); }
+
+    .total-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: right;
+    }
+    .total-pct.over { color: var(--danger); }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.3rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .delete-btn:hover { color: var(--danger); background: rgba(255,107,107,0.1); }
+
+    .prd-cell { padding: 0.35rem 0.4rem !important; }
+    .prd-actions { display: flex; align-items: center; gap: 0.25rem; }
+    .prd-url-input {
+      flex: 1;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.45rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      min-width: 0;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .prd-url-input:focus { border-color: var(--accent); outline: none; }
+    .prd-upload-label {
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem;
+      border-radius: 4px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .prd-upload-label:hover { background: rgba(108,92,231,0.15); }
+    .prd-link {
+      color: var(--accent-light);
+      text-decoration: none;
+      font-size: 0.8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 80px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .prd-link:hover { text-decoration: underline; }
+    .prd-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.25rem;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-left: 0.15rem;
+    }
+    .prd-clear:hover { color: var(--danger); background: rgba(255,107,107,0.1); }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .initiative-name-input {
+      font-family: 'DM Sans', sans-serif;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .resizable-th {
+      position: relative;
+      user-select: none;
+    }
+    .col-resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      cursor: col-resize;
+      background: transparent;
+      z-index: 2;
+      transition: background 0.15s;
+    }
+    .col-resize-handle:hover,
+    .col-resize-handle.active {
+      background: var(--accent);
+    }
+    .initiative-name-input:hover { border-color: var(--border); }
+    .initiative-name-input:focus {
+      background: var(--bg);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    }
+
+    /* ── Gantt Chart ── */
+    .gantt-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .gantt-header-row {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gantt-label-col {
+      width: 220px;
+      min-width: 120px;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      background: rgba(108, 92, 231, 0.08);
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .gantt-timeline-col {
+      flex: 1;
+      display: flex;
+      position: relative;
+      background: rgba(108, 92, 231, 0.04);
+      min-height: 36px;
+    }
+
+    .gantt-month {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem 0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      border-right: 1px solid var(--border);
+    }
+    .gantt-month:last-child { border-right: none; }
+
+    .gantt-week-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      pointer-events: none;
+    }
+
+    .gantt-week-marker {
+      border-right: 1px solid rgba(255,255,255,0.03);
+      flex-shrink: 0;
+    }
+
+    .gantt-row {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      height: 44px;
+    }
+    .gantt-row:last-child { border-bottom: none; }
+
+    .gantt-row .gantt-label-col {
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .gantt-label-text {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .gantt-row .gantt-timeline-col {
+      display: flex;
+      align-items: center;
+      background: transparent;
+      position: relative;
+    }
+
+    .gantt-bar-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .gantt-bar {
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      transition: left 0.4s ease, width 0.4s ease;
+      min-width: 2px;
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 0 0.5rem;
+    }
+
+    .gantt-bar.cat-carry-forward { background: linear-gradient(90deg, #748ffc, #5c7cfa); }
+    .gantt-bar.cat-ktlo { background: linear-gradient(90deg, #da77f2, #cc5de8); }
+    .gantt-bar.cat-scalability { background: linear-gradient(90deg, #38d9a9, #20c997); }
+    .gantt-bar.cat-product { background: linear-gradient(90deg, #ffa94d, #ff922b); }
+    .gantt-bar.cat-ro-migration { background: linear-gradient(90deg, #ff8787, #ff6b6b); }
+    .gantt-bar.cat-innovation { background: linear-gradient(90deg, #66d9ef, #4dc8db); }
+
+    .gantt-today-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--danger);
+      z-index: 5;
+      pointer-events: none;
+    }
+    .gantt-today-line::after {
+      content: 'TODAY';
+      position: absolute;
+      top: -18px;
+      left: -16px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--danger);
+      letter-spacing: 0.5px;
+    }
+
+    .gantt-month-dividers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+    }
+
+    .gantt-month-divider {
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .gantt-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .priority-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .priority-dot.P0 { background: var(--p0); }
+    .priority-dot.P1 { background: var(--p1); }
+    .priority-dot.P2 { background: var(--p2); }
+    .priority-dot.P3 { background: var(--p3); }
+    .priority-dot.NA { background: var(--na); }
+
+    .holiday-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      padding-left: 0.25rem;
+    }
+    .holiday-note span { color: var(--warning); }
+
+    /* ── Multi-select dropdown ── */
+    .multi-select {
+      position: relative;
+      min-width: 120px;
+    }
+
+    .multi-select-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.3rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text);
+      transition: border-color 0.2s;
+      width: 100%;
+      min-height: 32px;
+    }
+    .multi-select-toggle:hover { border-color: var(--border); }
+    .multi-select-toggle.open {
+      border-color: var(--border-focus);
+      background: var(--bg);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    }
+
+    .multi-select-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ms-tag {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(108, 92, 231, 0.15);
+      color: var(--accent-light);
+      white-space: nowrap;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ms-placeholder {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .ms-arrow {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .multi-select-toggle.open .ms-arrow { transform: rotate(180deg); }
+
+    .multi-select-dropdown {
+      display: none;
+      position: fixed;
+      min-width: 170px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 9999;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.3rem 0;
+    }
+    .multi-select-dropdown.open { display: block; }
+
+    .ms-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .ms-option:hover { background: var(--surface-hover); }
+
+    .ms-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      font-size: 0.6rem;
+      color: transparent;
+    }
+    .ms-option.selected .ms-checkbox {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .ms-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.25rem 0;
+    }
+
+    .ms-group-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      padding: 0.4rem 0.75rem 0.2rem;
+    }
+
+    @media (max-width: 1200px) {
+      body { padding: 1rem; }
+      .app-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <div class="app-title">Quarterly Player Planner</div>
+    <div class="app-subtitle">Plan capacity, initiatives, and timelines for the quarter</div>
+  </div>
+  <div class="quarter-selector">
+    <label>Quarter</label>
+    <select id="quarter-select">
+      <option value="Q1">Q1</option>
+      <option value="Q2" selected>Q2</option>
+      <option value="Q3">Q3</option>
+      <option value="Q4">Q4</option>
+    </select>
+    <label style="margin-left: 0.5rem;">Year</label>
+    <select id="year-select">
+      <option value="2026" selected>2026</option>
+      <option value="2027">2027</option>
+      <option value="2028">2028</option>
+      <option value="2029">2029</option>
+      <option value="2030">2030</option>
+    </select>
+    <span class="quarter-date-badge" id="quarter-date-badge"></span>
+    <span class="quarter-working-days" id="quarter-working-days"></span>
+  </div>
+</div>
+
+<!-- T-Shirt Size Config Section -->
+<div class="section" id="section-tshirt">
+  <div class="section-header" onclick="toggleSection('section-tshirt')">
+    <div class="section-title">
+      <span class="icon" style="background:rgba(255,107,107,0.15);color:var(--danger);">&#9733;</span>
+      T-Shirt Size Guide
+      <span class="section-chevron">&#9660;</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <table class="capacity-table tshirt-table" id="tshirt-table">
+      <thead>
+        <tr>
+          <th style="width:80px;">Size</th>
+          <th>Min Days</th>
+          <th>Max Days</th>
+          <th style="width:100px;">Midpoint</th>
+        </tr>
+      </thead>
+      <tbody id="tshirt-body"></tbody>
+    </table>
+    <div class="tshirt-validation-msg" id="tshirt-validation-msg"></div>
+  </div>
+</div>
+
+<!-- Capacity Section -->
+<div class="section" id="section-capacity">
+  <div class="section-header" onclick="toggleSection('section-capacity')">
+    <div class="section-title">
+      <span class="icon icon-capacity">&#9881;</span>
+      Player Capacity
+      <span class="section-chevron">&#9660;</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <table class="capacity-table" id="capacity-table" style="max-width:520px;">
+      <thead>
+        <tr>
+          <th style="width:130px;">Tribe</th>
+          <th style="width:160px;">BE</th>
+          <th style="width:160px;">FE</th>
+        </tr>
+      </thead>
+      <tbody id="capacity-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Jira Config Modal -->
+<div class="modal-overlay" id="jira-modal">
+  <div class="modal">
+    <h3>&#128279; Jira Connection</h3>
+    <p class="modal-desc">Enter your Atlassian credentials to fetch live data from Jira. Your credentials are stored locally in your browser. Requires the CORS proxy running on port 8788 (<code>python3 proxy.py</code>).</p>
+    <label for="jira-domain">Jira Domain</label>
+    <input type="text" id="jira-domain" placeholder="e.g. axilis.atlassian.net">
+    <label for="jira-email">Email</label>
+    <input type="text" id="jira-email" placeholder="you@company.com">
+    <label for="jira-token">API Token</label>
+    <input type="password" id="jira-token" placeholder="Paste your Atlassian API token">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeJiraModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJiraConfig()">Save &amp; Refresh</button>
+    </div>
+    <div class="refresh-status" id="modal-status"></div>
+  </div>
+</div>
+
+<!-- Initiatives Section -->
+<div class="section" id="section-initiatives">
+  <div class="section-header" onclick="toggleSection('section-initiatives', event)">
+    <div class="section-title">
+      <span class="icon icon-initiatives">&#9733;</span>
+      Initiatives
+      <span class="section-chevron">&#9660;</span>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center;" onclick="event.stopPropagation()">
+      <label style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);font-weight:600;">Filter by Tribe</label>
+      <select id="initiatives-tribe-filter" onchange="renderInitiativesTable()" style="font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.875rem;cursor:pointer;outline:none;min-width:160px;">
+        <option value="all">All</option>
+        <option value="multi-tribe">Multi-Tribe</option>
+      </select>
+      <button class="btn btn-outline" id="jira-refresh-btn" onclick="refreshFromJira()">&#8635; Refresh from Jira</button>
+      <button class="btn btn-primary" onclick="addInitiativeRow()">+ Add Initiative</button>
+    </div>
+  </div>
+  <div class="section-body">
+    <div style="overflow-x:auto;">
+    <table id="initiatives-table" class="initiatives-table">
+      <thead>
+        <tr>
+          <th rowspan="2" style="min-width:140px;width:180px;" class="resizable-th" id="th-init-name">Initiative Name<div class="col-resize-handle" id="col-resize-handle"></div></th>
+          <th rowspan="2" style="width:145px;">Category</th>
+          <th rowspan="2" style="width:140px;">Tribe(s)</th>
+          <th colspan="2" class="group-header">Estimate (T-Shirt Size)</th>
+          <th rowspan="2" style="width:180px;">% Capacity</th>
+          <th rowspan="2" style="width:80px;">Priority</th>
+          <th rowspan="2" style="width:120px;">PRD</th>
+          <th rowspan="2" style="width:40px;"></th>
+        </tr>
+        <tr>
+          <th class="sub-header" style="width:100px;">BE</th>
+          <th class="sub-header" style="width:100px;">FE</th>
+        </tr>
+      </thead>
+      <tbody id="initiatives-body"></tbody>
+    </table>
+    </div>
+
+    <div class="total-capacity-bar" id="total-bar-section">
+      <span class="label">Total Utilisation</span>
+      <div class="total-bar"><div class="total-bar-fill" id="total-bar-fill"></div></div>
+      <span class="total-pct" id="total-pct-value">0%</span>
+    </div>
+    <div class="holiday-note" id="holiday-note"></div>
+  </div>
+</div>
+
+<!-- Gantt Chart Section -->
+<div class="section" id="section-gantt">
+  <div class="section-header" onclick="toggleSection('section-gantt', event)">
+    <div class="section-title">
+      <span class="icon icon-gantt">&#9776;</span>
+      Timeline &mdash; Gantt Chart
+      <span class="section-chevron">&#9660;</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;" onclick="event.stopPropagation()">
+      <label style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);font-weight:600;">Filter by Tribe</label>
+      <select id="gantt-tribe-filter" onchange="renderGantt()" style="font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.875rem;cursor:pointer;outline:none;min-width:160px;">
+        <option value="all">All</option>
+        <option value="multi-tribe">Multi-Tribe</option>
+      </select>
+    </div>
+  </div>
+  <div class="section-body">
+    <div class="gantt-container" id="gantt-container"></div>
+  </div>
+</div>
+
+<!-- Allocation by Category Section -->
+<div class="section" id="section-allocation">
+  <div class="section-header" onclick="toggleSection('section-allocation')">
+    <div class="section-title">
+      <span class="icon" style="background:rgba(255,169,77,0.15);color:#ffa94d;">&#9638;</span>
+      Allocation by Category
+      <span class="section-chevron">&#9660;</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div id="allocation-table-container"></div>
+  </div>
+</div>
+
+<script>
+const TRIBES = ['Manage', 'Engagement', 'Transact', 'Fraud', 'Retail'];
+const EXTRA_TRIBES = ['Gaming', 'Sports', 'Social', 'Data', 'Design'];
+const ALL_TRIBE_OPTIONS = [...TRIBES, ...EXTRA_TRIBES];
+const CAPABILITIES = ['BE', 'FE'];
+const CATEGORIES = ['Carry Forward', 'KTLO', 'Scalability', 'Product Improvements', 'RO Migration', 'Innovation'];
+const PRIORITIES = ['P0', 'P1', 'P2', 'P3', 'NA'];
+const PRIORITY_ORDER = { P0: 0, P1: 1, P2: 2, P3: 3, NA: 4 };
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let ganttLabelWidth = 220;
+
+const TSHIRT_SIZES = [
+  { label: 'XS', min: 0,   max: 10  },
+  { label: 'S',  min: 11,  max: 25  },
+  { label: 'M',  min: 26,  max: 60  },
+  { label: 'L',  min: 61,  max: 100 },
+  { label: 'XL', min: 101, max: 150 },
+];
+const TSHIRT_LABELS = ['', ...TSHIRT_SIZES.map(s => s.label)];
+
+function tshirtMidpoint(label) {
+  if (!label) return 0;
+  const s = TSHIRT_SIZES.find(t => t.label === label);
+  return s ? Math.round((s.min + s.max) / 2) : 0;
+}
+
+function tshirtSelectHtml(value, onchangeExpr) {
+  return `<select class="tshirt-select" onchange="${onchangeExpr}">
+    ${TSHIRT_LABELS.map(l => `<option value="${l}" ${l === (value||'') ? 'selected' : ''}>${l || '—'}</option>`).join('')}
+  </select>`;
+}
+
+function tshirtPairHtml(size, count, sizeExpr, countExpr) {
+  const countNums = Array.from({length: 25}, (_, i) => i + 1);
+  return `<div class="tshirt-pair">
+    <select class="tshirt-select" onchange="${sizeExpr}">
+      ${TSHIRT_LABELS.map(l => `<option value="${l}" ${l === (size||'') ? 'selected' : ''}>${l || '—'}</option>`).join('')}
+    </select>
+    <span class="tshirt-x">×</span>
+    <select class="tshirt-count" onchange="${countExpr}">
+      ${[0, ...countNums].map(n => `<option value="${n}" ${n === (count||0) ? 'selected' : ''}>${n || '—'}</option>`).join('')}
+    </select>
+  </div>`;
+}
+
+let capacityRows = [];
+let initiativeRows = [];
+let nextCapId = 1;
+let nextInitId = 1;
+
+// ── UK Bank Holidays ──
+function computeEasterSunday(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function substituteForWeekend(date) {
+  const d = new Date(date);
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() + 2);
+  else if (dow === 0) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function getUKBankHolidays(year) {
+  const holidays = [];
+  const ds = (y, m, d) => new Date(y, m, d);
+
+  // New Year's Day
+  holidays.push(substituteForWeekend(ds(year, 0, 1)));
+
+  // Good Friday & Easter Monday
+  const easter = computeEasterSunday(year);
+  const goodFriday = new Date(easter);
+  goodFriday.setDate(easter.getDate() - 2);
+  holidays.push(goodFriday);
+
+  const easterMonday = new Date(easter);
+  easterMonday.setDate(easter.getDate() + 1);
+  holidays.push(easterMonday);
+
+  // Early May Bank Holiday (first Monday of May)
+  let d = ds(year, 4, 1);
+  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+  holidays.push(new Date(d));
+
+  // Spring Bank Holiday (last Monday of May)
+  d = ds(year, 4, 31);
+  while (d.getDay() !== 1) d.setDate(d.getDate() - 1);
+  holidays.push(new Date(d));
+
+  // Summer Bank Holiday (last Monday of August)
+  d = ds(year, 7, 31);
+  while (d.getDay() !== 1) d.setDate(d.getDate() - 1);
+  holidays.push(new Date(d));
+
+  // Christmas Day
+  const xmas = substituteForWeekend(ds(year, 11, 25));
+  holidays.push(xmas);
+
+  // Boxing Day - must not clash with Christmas substitute
+  let boxing = substituteForWeekend(ds(year, 11, 26));
+  if (boxing.getTime() === xmas.getTime()) {
+    boxing.setDate(boxing.getDate() + 1);
+  }
+  holidays.push(boxing);
+
+  return holidays;
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getHolidaySet(year) {
+  const hols = getUKBankHolidays(year);
+  const set = new Set();
+  hols.forEach(h => set.add(dateKey(h)));
+  return set;
+}
+
+function isWorkingDay(d, holidaySet) {
+  const dow = d.getDay();
+  if (dow === 0 || dow === 6) return false;
+  if (holidaySet.has(dateKey(d))) return false;
+  return true;
+}
+
+function getQuarterDates() {
+  const q = document.getElementById('quarter-select').value;
+  const y = parseInt(document.getElementById('year-select').value);
+  const quarters = {
+    Q1: { start: new Date(y, 0, 1), end: new Date(y, 2, 31) },
+    Q2: { start: new Date(y, 3, 1), end: new Date(y, 5, 30) },
+    Q3: { start: new Date(y, 6, 1), end: new Date(y, 8, 30) },
+    Q4: { start: new Date(y, 9, 1), end: new Date(y, 11, 31) },
+  };
+  return quarters[q];
+}
+
+function getQuarterMonths() {
+  const q = document.getElementById('quarter-select').value;
+  const y = parseInt(document.getElementById('year-select').value);
+  const qMonths = { Q1: [0,1,2], Q2: [3,4,5], Q3: [6,7,8], Q4: [9,10,11] };
+  return qMonths[q].map(m => ({ month: m, year: y }));
+}
+
+function countWorkingDaysInRange(start, end, holidaySet) {
+  let count = 0;
+  const d = new Date(start);
+  while (d <= end) {
+    if (isWorkingDay(d, holidaySet)) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+function getHolidaysInQuarter() {
+  const qd = getQuarterDates();
+  const y = parseInt(document.getElementById('year-select').value);
+  const allHols = getUKBankHolidays(y);
+  return allHols.filter(h => h >= qd.start && h <= qd.end);
+}
+
+function firstWorkingDayOnOrAfter(date, holidaySet) {
+  const d = new Date(date);
+  while (!isWorkingDay(d, holidaySet)) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
+function addWorkingDays(startDate, days, holidaySet) {
+  const result = new Date(startDate);
+  if (days <= 0) return result;
+  let added = 0;
+  while (added < days) {
+    result.setDate(result.getDate() + 1);
+    if (isWorkingDay(result, holidaySet)) added++;
+  }
+  return result;
+}
+
+function formatDate(d) {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatDateShort(d) {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+
+function capCellDays(size, count) {
+  return tshirtMidpoint(size) * (count || 0);
+}
+
+function capCellCount(size, count) {
+  return size ? (count || 0) : 0;
+}
+
+function getTotalCapacityDays() {
+  let total = 0;
+  capacityRows.forEach(row => {
+    CAPABILITIES.forEach(cap => { total += capCellDays(row[cap + '_size'], row[cap + '_count']); });
+  });
+  return total;
+}
+
+function getCapacityByCapability() {
+  const caps = {};
+  CAPABILITIES.forEach(cap => {
+    caps[cap] = capacityRows.reduce((s, r) => s + capCellDays(r[cap + '_size'], r[cap + '_count']), 0);
+  });
+  return caps;
+}
+
+function getCapacityCountByCapability() {
+  const caps = {};
+  CAPABILITIES.forEach(cap => {
+    caps[cap] = capacityRows.reduce((s, r) => s + capCellCount(r[cap + '_size'], r[cap + '_count']), 0);
+  });
+  return caps;
+}
+
+function getCatBarClass(cat) {
+  return {
+    'Carry Forward': 'cat-carry-forward',
+    'KTLO': 'cat-ktlo',
+    'Scalability': 'cat-scalability',
+    'Product Improvements': 'cat-product',
+    'RO Migration': 'cat-ro-migration',
+    'Innovation': 'cat-innovation',
+  }[cat] || '';
+}
+
+// ── Capacity ──
+function initCapacityRows() {
+  capacityRows = TRIBES.map(tribe => ({ id: nextCapId++, tribe, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 }));
+}
+
+function addInitiativeRow() {
+  initiativeRows.push({ id: nextInitId++, name: '', category: CATEGORIES[0], tribes: [], est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0, priority: 'P1', jiraStartDate: null, jiraDueDate: null, jiraStatus: null, jiraKey: null, prd: null, prdFileName: null });
+  renderAll();
+}
+
+function toggleTribe(id, tribe, evt) {
+  if (evt) evt.stopPropagation();
+  const row = initiativeRows.find(r => r.id === id);
+  if (!row) return;
+  const idx = row.tribes.indexOf(tribe);
+  if (idx === -1) row.tribes.push(tribe);
+  else row.tribes.splice(idx, 1);
+
+  // Update dropdown options in-place without full re-render
+  const dd = document.getElementById('ms-dd-' + id);
+  if (dd) {
+    dd.querySelectorAll('.ms-option').forEach(opt => {
+      const label = opt.textContent.trim();
+      if (label === tribe) opt.classList.toggle('selected');
+    });
+  }
+  // Update the tags display in-place
+  const toggle = document.getElementById('ms-toggle-' + id);
+  if (toggle) {
+    const tagsDiv = toggle.querySelector('.multi-select-tags');
+    if (row.tribes.length > 0) {
+      tagsDiv.innerHTML = row.tribes.map(t => `<span class="ms-tag">${t}</span>`).join('');
+    } else {
+      tagsDiv.innerHTML = '<span class="ms-placeholder">Select tribes...</span>';
+    }
+  }
+}
+
+function toggleMultiSelect(id, evt) {
+  evt.stopPropagation();
+  document.querySelectorAll('.multi-select-dropdown.open').forEach(el => {
+    if (el.dataset.id !== String(id)) { el.classList.remove('open'); el.previousElementSibling.classList.remove('open'); }
+  });
+  const dd = document.getElementById('ms-dd-' + id);
+  const toggle = document.getElementById('ms-toggle-' + id);
+  const isOpen = dd.classList.toggle('open');
+  toggle.classList.toggle('open', isOpen);
+  if (isOpen) {
+    const rect = toggle.getBoundingClientRect();
+    dd.style.top = rect.bottom + 4 + 'px';
+    dd.style.left = rect.left + 'px';
+    dd.style.width = Math.max(rect.width, 170) + 'px';
+  }
+}
+
+function removeInitiativeRow(id) {
+  initiativeRows = initiativeRows.filter(r => r.id !== id);
+  renderAll();
+}
+
+function sortInitiatives() {
+  initiativeRows.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+}
+
+function updateCapacity(id, field, value) {
+  const row = capacityRows.find(r => r.id === id);
+  if (row) {
+    row[field] = field.endsWith('_count') ? (parseInt(value) || 0) : value;
+    renderAll();
+  }
+}
+
+function updateInitiative(id, field, value) {
+  const row = initiativeRows.find(r => r.id === id);
+  if (row) {
+    row[field] = field.endsWith('_count') ? (parseInt(value) || 0) : value;
+    renderAll();
+  }
+}
+
+let tshirtErrorTimeout = null;
+
+function showTshirtError(msg, rule) {
+  const el = document.getElementById('tshirt-validation-msg');
+  el.innerHTML = `<span class="tshirt-err-icon">&#9888;</span>${msg}${rule ? `<span class="tshirt-err-rule">${rule}</span>` : ''}`;
+  el.classList.add('visible');
+  clearTimeout(tshirtErrorTimeout);
+  tshirtErrorTimeout = setTimeout(() => el.classList.remove('visible'), 6000);
+}
+
+function clearTshirtError() {
+  const el = document.getElementById('tshirt-validation-msg');
+  el.classList.remove('visible');
+  el.innerHTML = '';
+}
+
+function updateTshirtConfig(idx, field, value) {
+  const MAX_DAYS = 150;
+  const v = parseInt(value) || 0;
+  const s = TSHIRT_SIZES[idx];
+  const oldVal = s[field];
+
+  if (v < 0) {
+    showTshirtError(
+      `Cannot set ${s.label} ${field} to a negative number.`,
+      'All values must be 0 or greater.'
+    );
+    renderTshirtTable();
+    return;
+  }
+
+  if (v > MAX_DAYS) {
+    showTshirtError(
+      `Cannot set ${s.label} ${field} to ${v} days — the maximum allowed is ${MAX_DAYS}.`,
+      'Rule: No t-shirt size can exceed 150 days.'
+    );
+    renderTshirtTable();
+    return;
+  }
+
+  if (field === 'min' && v > s.max) {
+    showTshirtError(
+      `Cannot set ${s.label} min to ${v} — it would exceed its own max of ${s.max}.`,
+      'Rule: Min days must be less than or equal to max days within the same size.'
+    );
+    renderTshirtTable();
+    return;
+  }
+
+  if (field === 'max' && v < s.min) {
+    showTshirtError(
+      `Cannot set ${s.label} max to ${v} — it would be less than its own min of ${s.min}.`,
+      'Rule: Max days must be greater than or equal to min days within the same size.'
+    );
+    renderTshirtTable();
+    return;
+  }
+
+  if (field === 'min' && idx > 0) {
+    const prev = TSHIRT_SIZES[idx - 1];
+    if (v <= prev.max) {
+      showTshirtError(
+        `Cannot set ${s.label} min to ${v} — it must be greater than ${prev.label}'s max of ${prev.max} to avoid overlapping ranges.`,
+        `Rule: Each size's min must be strictly greater than the previous size's max.`
+      );
+      renderTshirtTable();
+      return;
+    }
+  }
+
+  if (field === 'max' && idx < TSHIRT_SIZES.length - 1) {
+    const next = TSHIRT_SIZES[idx + 1];
+    if (v >= next.min) {
+      showTshirtError(
+        `Cannot set ${s.label} max to ${v} — it would overlap with ${next.label}'s min of ${next.min}. Adjust ${next.label}'s min first.`,
+        `Rule: Each size's max must be strictly less than the next size's min.`
+      );
+      renderTshirtTable();
+      return;
+    }
+  }
+
+  clearTshirtError();
+  s[field] = v;
+  renderAll();
+}
+
+function setPrdUrl(id, url) {
+  const row = initiativeRows.find(r => r.id === id);
+  if (!row || !url.trim()) return;
+  row.prd = url.trim();
+  try { row.prdFileName = new URL(url.trim()).hostname; } catch { row.prdFileName = '🔗 Link'; }
+  renderAll();
+}
+
+function uploadPrd(id, file) {
+  if (!file) return;
+  const row = initiativeRows.find(r => r.id === id);
+  if (!row) return;
+  const url = URL.createObjectURL(file);
+  row.prd = url;
+  row.prdFileName = '📄 ' + file.name;
+  renderAll();
+}
+
+function clearPrd(id) {
+  const row = initiativeRows.find(r => r.id === id);
+  if (!row) return;
+  row.prd = null;
+  row.prdFileName = null;
+  renderAll();
+}
+
+// ── Quarter Badge ──
+function renderQuarterBadge() {
+  const qd = getQuarterDates();
+  const y = parseInt(document.getElementById('year-select').value);
+  const holidaySet = getHolidaySet(y);
+  const workingDays = countWorkingDaysInRange(qd.start, qd.end, holidaySet);
+  const holsInQ = getHolidaysInQuarter();
+
+  document.getElementById('quarter-date-badge').textContent =
+    `${formatDateShort(qd.start)} — ${formatDateShort(qd.end)}, ${y}`;
+
+  document.getElementById('quarter-working-days').textContent =
+    `${workingDays} working days (excl. ${holsInQ.length} holidays)`;
+
+  const holNames = holsInQ.map(h => formatDate(h));
+  document.getElementById('holiday-note').innerHTML = holsInQ.length > 0
+    ? `<span>&#9888;</span> UK bank holidays this quarter: ${holNames.join(', ')}`
+    : '';
+}
+
+// ── T-Shirt Config Table ──
+function renderTshirtTable() {
+  const tbody = document.getElementById('tshirt-body');
+  let html = '';
+  TSHIRT_SIZES.forEach((s, idx) => {
+    const mid = Math.round((s.min + s.max) / 2);
+    const cls = s.label.toLowerCase();
+    html += `<tr>
+      <td><span class="tshirt-badge ${cls}">${s.label}</span></td>
+      <td><input type="number" min="0" max="150" value="${s.min}" onchange="updateTshirtConfig(${idx},'min',this.value)" style="width:70px;text-align:center;"></td>
+      <td><input type="number" min="0" max="150" value="${s.max}" onchange="updateTshirtConfig(${idx},'max',this.value)" style="width:70px;text-align:center;"></td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--text-muted);text-align:center;">${mid} d</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ── Capacity Table ──
+function renderCapacityTable() {
+  const tbody = document.getElementById('capacity-body');
+  let html = '';
+  capacityRows.forEach(row => {
+    html += `<tr>
+      <td style="font-weight:600;padding-left:1.25rem;">${row.tribe}</td>
+      ${CAPABILITIES.map(cap => `
+        <td style="text-align:center;">${tshirtPairHtml(
+          row[cap + '_size'], row[cap + '_count'],
+          `updateCapacity(${row.id}, '${cap}_size', this.value)`,
+          `updateCapacity(${row.id}, '${cap}_count', this.value)`
+        )}</td>
+      `).join('')}
+    </tr>`;
+  });
+
+  const capTotals = {};
+  CAPABILITIES.forEach(cap => {
+    capTotals[cap] = capacityRows.reduce((s, r) => s + capCellCount(r[cap + '_size'], r[cap + '_count']), 0);
+  });
+
+  html += `<tr style="border-top:2px solid var(--border);background:rgba(99,102,241,0.06);">`;
+  html += `<td style="font-weight:700;padding-left:1.25rem;color:var(--accent-light);">Player (Total)</td>`;
+  CAPABILITIES.forEach(cap => {
+    const t = capTotals[cap];
+    html += `<td style="text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.9rem;color:var(--accent-light);">${t > 0 ? t : '—'}</td>`;
+  });
+  html += `</tr>`;
+
+  tbody.innerHTML = html;
+}
+
+// ── Initiatives Table ──
+function computeInitiativeSchedule() {
+  sortInitiatives();
+  const qd = getQuarterDates();
+  const y = parseInt(document.getElementById('year-select').value);
+  const holidaySet = getHolidaySet(y);
+  const totalCapDays = getTotalCapacityDays();
+  const capByCap = getCapacityByCapability();
+
+  let cumulativeWorkingDays = 0;
+  const schedule = [];
+
+  const capCountByCap = getCapacityCountByCapability();
+  const totalCapCount = CAPABILITIES.reduce((s, c) => s + capCountByCap[c], 0);
+
+  initiativeRows.forEach(row => {
+    const capEstDays = {};
+    const capEstCount = {};
+    const capPct = {};
+    let totalEstDays = 0;
+    let totalEstCount = 0;
+
+    CAPABILITIES.forEach(cap => {
+      const size = row[`est_${cap}_size`];
+      const count = row[`est_${cap}_count`] || 0;
+      const days = capCellDays(size, count);
+      capEstDays[cap] = days;
+      capEstCount[cap] = capCellCount(size, count);
+      totalEstDays += days;
+      totalEstCount += capEstCount[cap];
+      capPct[cap] = capCountByCap[cap] > 0 ? (capEstCount[cap] / capCountByCap[cap]) * 100 : 0;
+    });
+
+    const totalEstPw = (totalEstDays / 5).toFixed(1);
+    const weightedPct = totalCapCount > 0 ? (totalEstCount / totalCapCount) * 100 : 0;
+
+    const maxEstDays = Math.max(...CAPABILITIES.map(c => capEstDays[c]));
+
+    const qStart = firstWorkingDayOnOrAfter(qd.start, holidaySet);
+    let startDate, endDate;
+
+    if (maxEstDays > 0) {
+      startDate = cumulativeWorkingDays === 0
+        ? new Date(qStart)
+        : addWorkingDays(qStart, cumulativeWorkingDays, holidaySet);
+      endDate = addWorkingDays(startDate, maxEstDays, holidaySet);
+      cumulativeWorkingDays += maxEstDays;
+    } else if (row.jiraStartDate && row.jiraDueDate) {
+      const jStart = new Date(row.jiraStartDate + 'T00:00:00');
+      const jEnd = new Date(row.jiraDueDate + 'T00:00:00');
+      startDate = jStart < qd.start ? new Date(qd.start) : jStart;
+      endDate = jEnd > qd.end ? new Date(qd.end) : jEnd;
+    } else {
+      startDate = new Date(qStart);
+      endDate = new Date(startDate);
+    }
+
+    schedule.push({ ...row, capEstDays, capEstCount, capPct, totalEstDays, totalEstCount, totalEstPw, weightedPct, maxEstDays, startDate, endDate });
+  });
+
+  return { schedule, totalCapDays, capByCap };
+}
+
+function renderInitiativesTable() {
+  const { schedule, totalCapDays, capByCap } = computeInitiativeSchedule();
+  const tbody = document.getElementById('initiatives-body');
+  const colCount = 9;
+  const tribeFilter = document.getElementById('initiatives-tribe-filter').value;
+
+  let filtered = schedule;
+  if (tribeFilter === 'multi-tribe') {
+    filtered = schedule.filter(r => r.tribes && r.tribes.length > 1);
+  } else if (tribeFilter !== 'all') {
+    filtered = schedule.filter(r => r.tribes && r.tribes.includes(tribeFilter));
+  }
+
+  if (filtered.length === 0) {
+    const msg = schedule.length === 0
+      ? 'No initiatives added yet. Click "+ Add Initiative" to start planning.'
+      : `No initiatives found for "${tribeFilter === 'multi-tribe' ? 'Multi-Tribe' : tribeFilter}".`;
+    tbody.innerHTML = `<tr><td colspan="${colCount}" class="empty-state">${msg}</td></tr>`;
+    document.getElementById('total-bar-fill').style.width = '0%';
+    document.getElementById('total-pct-value').textContent = '0%';
+    document.getElementById('total-pct-value').classList.remove('over');
+    document.getElementById('total-bar-fill').classList.remove('over');
+    return;
+  }
+
+  let html = '';
+  let grandTotalEstCount = 0;
+
+  filtered.forEach(row => {
+    grandTotalEstCount += row.totalEstCount;
+
+    const capChips = CAPABILITIES.map(cap => {
+      const p = row.capPct[cap];
+      const cls = p > 100 ? ' over' : '';
+      return `<span class="cap-chip${cls}">${cap}: ${p.toFixed(0)}%</span>`;
+    }).join('');
+
+    html += `<tr>
+      <td><input type="text" class="initiative-name-input" placeholder="Initiative name..."
+            value="${row.name}" onchange="updateInitiative(${row.id}, 'name', this.value)"></td>
+      <td>
+        <select onchange="updateInitiative(${row.id}, 'category', this.value)">
+          ${CATEGORIES.map(c => `<option value="${c}" ${c === row.category ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <div class="multi-select">
+          <div class="multi-select-toggle" id="ms-toggle-${row.id}" onclick="toggleMultiSelect(${row.id}, event)">
+            <div class="multi-select-tags">
+              ${row.tribes.length > 0
+                ? row.tribes.map(t => `<span class="ms-tag">${t}</span>`).join('')
+                : '<span class="ms-placeholder">Select tribes...</span>'}
+            </div>
+            <span class="ms-arrow">&#9660;</span>
+          </div>
+          <div class="multi-select-dropdown" id="ms-dd-${row.id}" data-id="${row.id}">
+            <div class="ms-group-label">Player Tribes</div>
+            ${TRIBES.map(t => `<div class="ms-option${row.tribes.includes(t) ? ' selected' : ''}" onclick="toggleTribe(${row.id}, '${t}', event)"><span class="ms-checkbox">&#10003;</span>${t}</div>`).join('')}
+            <div class="ms-divider"></div>
+            <div class="ms-group-label">Other</div>
+            ${EXTRA_TRIBES.map(t => `<div class="ms-option${row.tribes.includes(t) ? ' selected' : ''}" onclick="toggleTribe(${row.id}, '${t}', event)"><span class="ms-checkbox">&#10003;</span>${t}</div>`).join('')}
+          </div>
+        </div>
+      </td>
+      ${CAPABILITIES.map(cap => {
+        return `<td style="text-align:center;">${tshirtPairHtml(
+          row[`est_${cap}_size`], row[`est_${cap}_count`],
+          `updateInitiative(${row.id}, 'est_${cap}_size', this.value)`,
+          `updateInitiative(${row.id}, 'est_${cap}_count', this.value)`
+        )}</td>`;
+      }).join('')}
+      <td>
+        <div class="pct-bar-container">
+          <div class="pct-bar"><div class="pct-bar-fill" style="width:${Math.min(row.weightedPct,100)}%"></div></div>
+          <span class="pct-value">${row.weightedPct.toFixed(1)}%</span>
+        </div>
+        <div class="cap-breakdown">${capChips}</div>
+      </td>
+      <td>
+        <select onchange="updateInitiative(${row.id}, 'priority', this.value)">
+          ${PRIORITIES.map(p => `<option value="${p}" ${p === row.priority ? 'selected' : ''}>${p}</option>`).join('')}
+        </select>
+      </td>
+      <td class="prd-cell">
+        ${row.prd
+          ? `<a href="${row.prd}" target="_blank" class="prd-link" title="${row.prd}">${row.prdFileName || '📎 Link'}</a><button class="prd-clear" onclick="clearPrd(${row.id})" title="Remove">✕</button>`
+          : `<div class="prd-actions">
+              <input type="text" class="prd-url-input" placeholder="Paste URL…" onkeydown="if(event.key==='Enter'){setPrdUrl(${row.id},this.value);this.value='';}" onblur="if(this.value.trim()){setPrdUrl(${row.id},this.value);this.value='';}">
+              <label class="prd-upload-label" title="Upload file">&#128206;<input type="file" style="display:none" onchange="uploadPrd(${row.id},this.files[0])"></label>
+            </div>`}
+      </td>
+      <td><button class="delete-btn" onclick="removeInitiativeRow(${row.id})" title="Remove">&#10005;</button></td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+
+  const totalCapCount = CAPABILITIES.reduce((s, c) => s + getCapacityCountByCapability()[c], 0);
+  const totalPct = totalCapCount > 0 ? (grandTotalEstCount / totalCapCount) * 100 : 0;
+  const isOver = totalPct > 100;
+  document.getElementById('total-bar-fill').style.width = `${Math.min(totalPct, 100)}%`;
+  document.getElementById('total-bar-fill').className = 'total-bar-fill' + (isOver ? ' over' : '');
+  document.getElementById('total-pct-value').textContent = `${totalPct.toFixed(1)}%`;
+  document.getElementById('total-pct-value').className = 'total-pct' + (isOver ? ' over' : '');
+}
+
+// ── Gantt Chart ──
+function renderGantt() {
+  const container = document.getElementById('gantt-container');
+  const { schedule } = computeInitiativeSchedule();
+  const tribeFilter = document.getElementById('gantt-tribe-filter').value;
+
+  let validItems = schedule.filter(r => r.maxEstDays > 0 || (r.jiraStartDate && r.jiraDueDate));
+
+  if (tribeFilter === 'multi-tribe') {
+    validItems = validItems.filter(r => r.tribes && r.tribes.length > 1);
+  } else if (tribeFilter !== 'all') {
+    validItems = validItems.filter(r => r.tribes && r.tribes.includes(tribeFilter));
+  }
+
+  if (validItems.length === 0) {
+    const msg = tribeFilter === 'all'
+      ? 'Add initiatives with estimates to see the Gantt chart.'
+      : `No initiatives found for "${tribeFilter}".`;
+    container.innerHTML = `<div class="gantt-empty">${msg}</div>`;
+    return;
+  }
+
+  const qd = getQuarterDates();
+  const qMonths = getQuarterMonths();
+  const totalCalendarDays = Math.round((qd.end - qd.start) / (1000 * 60 * 60 * 24)) + 1;
+
+  function daysBetween(a, b) {
+    return Math.round((b - a) / (1000 * 60 * 60 * 24));
+  }
+
+  function daysInMonth(m, y) {
+    return new Date(y, m + 1, 0).getDate();
+  }
+
+  const monthWidths = qMonths.map(qm => daysInMonth(qm.month, qm.year));
+  const totalMonthDays = monthWidths.reduce((a, b) => a + b, 0);
+
+  let html = '';
+
+  // Header
+  html += '<div class="gantt-header-row">';
+  html += '<div class="gantt-label-col" style="position:relative;user-select:none;" id="gantt-label-header">Initiative<div class="col-resize-handle" id="gantt-col-resize-handle"></div></div>';
+  html += '<div class="gantt-timeline-col">';
+  qMonths.forEach((qm, i) => {
+    const widthPct = (monthWidths[i] / totalMonthDays) * 100;
+    html += `<div class="gantt-month" style="width:${widthPct}%">${MONTHS[qm.month]} ${qm.year}</div>`;
+  });
+  html += '</div></div>';
+
+  // Rows
+  validItems.forEach(item => {
+    const offsetDays = Math.max(0, daysBetween(qd.start, item.startDate));
+    const durationDays = Math.max(1, daysBetween(item.startDate, item.endDate));
+    const leftPct = (offsetDays / totalCalendarDays) * 100;
+    const widthPct = Math.min((durationDays / totalCalendarDays) * 100, 100 - leftPct);
+    const catClass = getCatBarClass(item.category);
+    const label = item.name || item.category;
+
+    html += '<div class="gantt-row">';
+    html += `<div class="gantt-label-col"><span class="priority-dot ${item.priority}"></span><span class="gantt-label-text" title="${label.replace(/"/g, '&quot;')}">${label}</span></div>`;
+    html += '<div class="gantt-timeline-col">';
+
+    // Month dividers
+    html += '<div class="gantt-month-dividers">';
+    qMonths.forEach((qm, i) => {
+      const w = (monthWidths[i] / totalMonthDays) * 100;
+      html += `<div class="gantt-month-divider" style="width:${w}%"></div>`;
+    });
+    html += '</div>';
+
+    // Today line
+    const today = new Date();
+    if (today >= qd.start && today <= qd.end) {
+      const todayOffset = daysBetween(qd.start, today);
+      const todayPct = (todayOffset / totalCalendarDays) * 100;
+      html += `<div class="gantt-today-line" style="left:${todayPct}%"></div>`;
+    }
+
+    // Bar
+    const isJiraDates = item.maxEstDays === 0 && item.jiraStartDate && item.jiraDueDate;
+    const barStyle = isJiraDates ? 'opacity:0.7;border:1px dashed rgba(255,255,255,0.4);' : '';
+    html += `<div class="gantt-bar ${catClass}" style="left:${leftPct}%;width:${widthPct}%;${barStyle}">`;
+    if (widthPct > 8) html += `${formatDateShort(item.startDate)} → ${formatDateShort(item.endDate)}`;
+    html += '</div>';
+
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
+
+  // Apply persisted width and attach resize handle
+  const allLabelCols = container.querySelectorAll('.gantt-label-col');
+  if (ganttLabelWidth !== 220) {
+    allLabelCols.forEach(el => el.style.width = ganttLabelWidth + 'px');
+  }
+  const gHandle = document.getElementById('gantt-col-resize-handle');
+  if (gHandle) {
+    gHandle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startW = ganttLabelWidth;
+      gHandle.classList.add('active');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(ev) {
+        ganttLabelWidth = Math.max(120, startW + (ev.clientX - startX));
+        container.querySelectorAll('.gantt-label-col').forEach(el => {
+          el.style.width = ganttLabelWidth + 'px';
+        });
+      }
+      function onUp() {
+        gHandle.classList.remove('active');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+}
+
+// ── Column Resize ──
+(function() {
+  const handle = document.getElementById('col-resize-handle');
+  const th = document.getElementById('th-init-name');
+  let startX, startW;
+
+  handle.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    startX = e.clientX;
+    startW = th.offsetWidth;
+    handle.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(e) {
+      const newW = Math.max(140, startW + (e.clientX - startX));
+      th.style.width = newW + 'px';
+    }
+
+    function onUp() {
+      handle.classList.remove('active');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
+
+// ── Render All ──
+function toggleSection(id, evt) {
+  if (evt && (evt.target.closest('select') || evt.target.closest('button') || evt.target.closest('input'))) return;
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function renderAllocationTable() {
+  const container = document.getElementById('allocation-table-container');
+  const { schedule } = computeInitiativeSchedule();
+
+  const tribes = TRIBES;
+  const cats = CATEGORIES;
+
+  const totals = {};
+  tribes.forEach(t => { totals[t] = {}; cats.forEach(c => { totals[t][c] = 0; }); });
+
+  schedule.forEach(r => {
+    const estCount = r.totalEstCount || 0;
+    if (!estCount || !r.category) return;
+    const rowTribes = (r.tribes || []).filter(t => tribes.includes(t));
+    const share = rowTribes.length > 0 ? estCount / rowTribes.length : 0;
+    rowTribes.forEach(t => { totals[t][r.category] = (totals[t][r.category] || 0) + share; });
+  });
+
+  const playerTotals = {};
+  cats.forEach(c => {
+    playerTotals[c] = tribes.reduce((s, t) => s + (totals[t][c] || 0), 0);
+  });
+  const playerGrandTotal = cats.reduce((s, c) => s + playerTotals[c], 0);
+
+  let html = '<table class="capacity-table" style="text-align:center;">';
+  html += '<thead><tr><th style="width:180px;">Tribe</th>';
+  cats.forEach(c => { html += `<th>${c}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  tribes.forEach(t => {
+    const rowTotal = cats.reduce((s, c) => s + (totals[t][c] || 0), 0);
+    html += `<tr><td style="text-align:left;font-weight:600;">${t}</td>`;
+    cats.forEach(c => {
+      const pct = rowTotal > 0 ? ((totals[t][c] || 0) / rowTotal * 100) : 0;
+      const color = pct >= 40 ? 'var(--danger)' : pct >= 20 ? 'var(--warning)' : 'var(--text)';
+      html += `<td style="color:${color};font-family:'JetBrains Mono',monospace;font-size:0.85rem;">${pct.toFixed(1)}%</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += `<tr style="border-top:2px solid var(--border);background:rgba(99,102,241,0.06);">`;
+  html += `<td style="text-align:left;font-weight:700;color:var(--primary);">Player (Total)</td>`;
+  cats.forEach(c => {
+    const pct = playerGrandTotal > 0 ? (playerTotals[c] / playerGrandTotal * 100) : 0;
+    const color = pct >= 40 ? 'var(--danger)' : pct >= 20 ? 'var(--warning)' : 'var(--primary)';
+    html += `<td style="color:${color};font-family:'JetBrains Mono',monospace;font-size:0.85rem;font-weight:700;">${pct.toFixed(1)}%</td>`;
+  });
+  html += '</tr>';
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderAll() {
+  renderTshirtTable();
+  renderQuarterBadge();
+  renderCapacityTable();
+  renderInitiativesTable();
+  renderGantt();
+  renderAllocationTable();
+}
+
+document.getElementById('quarter-select').addEventListener('change', renderAll);
+document.getElementById('year-select').addEventListener('change', renderAll);
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.multi-select')) {
+    document.querySelectorAll('.multi-select-dropdown.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.multi-select-toggle.open').forEach(el => el.classList.remove('open'));
+  }
+});
+
+initCapacityRows();
+
+// Populate tribe filter dropdowns
+(function() {
+  ['initiatives-tribe-filter', 'gantt-tribe-filter'].forEach(id => {
+    const sel = document.getElementById(id);
+    TRIBES.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      sel.appendChild(opt);
+    });
+  });
+})();
+
+// ── Jira Integration ──
+const JIRA_DOMAIN_KEY = 'planpage_jira_domain';
+const JIRA_EMAIL_KEY  = 'planpage_jira_email';
+const JIRA_TOKEN_KEY  = 'planpage_jira_token';
+
+function getJiraConfig() {
+  return {
+    domain: localStorage.getItem(JIRA_DOMAIN_KEY) || '',
+    email:  localStorage.getItem(JIRA_EMAIL_KEY) || '',
+    token:  localStorage.getItem(JIRA_TOKEN_KEY) || ''
+  };
+}
+
+function hasJiraConfig() {
+  const c = getJiraConfig();
+  return c.domain && c.email && c.token;
+}
+
+function openJiraModal() {
+  const c = getJiraConfig();
+  document.getElementById('jira-domain').value = c.domain;
+  document.getElementById('jira-email').value = c.email;
+  document.getElementById('jira-token').value = c.token;
+  document.getElementById('modal-status').className = 'refresh-status';
+  document.getElementById('modal-status').textContent = '';
+  document.getElementById('jira-modal').classList.add('open');
+}
+
+function closeJiraModal() {
+  document.getElementById('jira-modal').classList.remove('open');
+}
+
+function saveJiraConfig() {
+  const domain = document.getElementById('jira-domain').value.trim();
+  const email  = document.getElementById('jira-email').value.trim();
+  const token  = document.getElementById('jira-token').value.trim();
+  if (!domain || !email || !token) {
+    const st = document.getElementById('modal-status');
+    st.textContent = 'All fields are required.';
+    st.className = 'refresh-status error';
+    return;
+  }
+  localStorage.setItem(JIRA_DOMAIN_KEY, domain);
+  localStorage.setItem(JIRA_EMAIL_KEY, email);
+  localStorage.setItem(JIRA_TOKEN_KEY, token);
+  closeJiraModal();
+  refreshFromJira();
+}
+
+function mapJiraPriority(jiraPriority) {
+  if (!jiraPriority) return null;
+  const name = (jiraPriority.name || '').toLowerCase();
+  if (name.includes('highest') || name.includes('critical') || name.includes('blocker')) return 'P0';
+  if (name.includes('high'))    return 'P1';
+  if (name.includes('medium'))  return 'P2';
+  if (name.includes('low'))     return 'P3';
+  if (name.includes('lowest'))  return 'P3';
+  return 'P2';
+}
+
+async function refreshFromJira() {
+  if (!hasJiraConfig()) {
+    openJiraModal();
+    return;
+  }
+
+  const btn = document.getElementById('jira-refresh-btn');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Refreshing…';
+
+  const config = getJiraConfig();
+  const auth = btoa(`${config.email}:${config.token}`);
+  const jiraRows = initiativeRows.filter(r => r.jiraKey);
+
+  let updated = 0, failed = 0;
+
+  const PROXY = 'http://127.0.0.1:8788';
+  for (const row of jiraRows) {
+    try {
+      const targetUrl = `https://${config.domain}/rest/api/3/issue/${row.jiraKey}?fields=summary,priority,duedate,status,created`;
+      const resp = await fetch(PROXY, {
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'application/json',
+          'X-Target-URL': targetUrl
+        }
+      });
+      if (!resp.ok) { failed++; continue; }
+      const data = await resp.json();
+      const f = data.fields;
+
+      row.name       = f.summary || row.name;
+      row.jiraStatus = f.status?.name || row.jiraStatus;
+      row.jiraDueDate = f.duedate || row.jiraDueDate;
+      row.jiraStartDate = f.created ? f.created.substring(0, 10) : row.jiraStartDate;
+
+      const mappedPri = mapJiraPriority(f.priority);
+      if (mappedPri) row.priority = mappedPri;
+
+      updated++;
+    } catch (e) {
+      console.error(`Failed to refresh ${row.jiraKey}:`, e);
+      failed++;
+    }
+  }
+
+  renderAll();
+
+  btn.disabled = false;
+  if (failed === 0) {
+    btn.innerHTML = '&#10003; Refreshed ' + updated + ' items';
+  } else {
+    btn.innerHTML = '&#9888; ' + updated + ' updated, ' + failed + ' failed';
+  }
+  setTimeout(() => { btn.innerHTML = origHTML; }, 3500);
+}
+
+const JIRA_INITIATIVES = [
+  // Wallet Core
+  { name: 'Segmented Boost Tokens', key: 'PLAYER-859', tribes: ['Transact'], priority: 'P2', dueDate: '2025-12-31', created: '2025-09-26', status: 'In Delivery' },
+  { name: '[RO] Open Bets (MIGRATION)', key: 'PLAYER-892', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
+  { name: '[RO] Transaction History (MIGRATION)', key: 'PLAYER-893', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
+  { name: '[RO] Player Balance Migration (MIGRATION)', key: 'PLAYER-886', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
+  { name: 'Stake Progressions (Wagering limits) (MIGRATION)', key: 'PLAYER-891', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Delivery', category: 'RO Migration' },
+  { name: 'Non-KYC lifetime limit (MIGRATION)', key: 'PLAYER-885', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
+  { name: 'Snapshot Reduction in preparation for additional RO data (Wallet and PA)', key: 'PLAYER-1023', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-03', status: 'To Do', category: 'Scalability' },
+  { name: 'Reporting data integrity', key: 'PLAYER-1025', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-03', status: 'To Do' },
+  { name: 'Minimalist state and resilience wallet - Q2 Spill over', key: 'PLAYER-1061', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'To Do', category: 'Carry Forward' },
+  { name: 'Integration Testing - Wallet', key: 'PLAYER-1064', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'In Delivery' },
+  // Wallet Integrations
+  { name: 'Bulk Balance management [Wallet]', key: 'PLAYER-1000', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-02-20', status: 'To Do', category: 'RO Migration' },
+  { name: 'Greece hypercare/aftercare - Transact', key: 'PLAYER-946', tribes: ['Transact'], priority: 'P2', dueDate: '2026-05-15', created: '2026-02-24', status: 'To Do' },
+  { name: 'Wallet: Negative balance handling', key: 'PLAYER-1013', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-02', status: 'To Do' },
+  { name: 'On demand Balance - consolidation wallet', key: 'PLAYER-1062', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'To Do' },
+];
+
+JIRA_INITIATIVES.forEach(init => {
+  initiativeRows.push({
+    id: nextInitId++,
+    name: init.name,
+    category: init.category || CATEGORIES[0],
+    tribes: [...init.tribes],
+    est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0,
+    priority: init.priority || 'P1',
+    jiraStartDate: init.created || null,
+    jiraDueDate: init.dueDate || null,
+    jiraStatus: init.status || null,
+    jiraKey: init.key || null,
+    prd: null,
+    prdFileName: null
+  });
+});
+renderAll();
+</script>
+
+</body>
+</html>
