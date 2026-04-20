@@ -34,7 +34,7 @@ PRD / Requirements Document
 ## Setup
 
 ```bash
-cd /Users/shreyasjanivara/Desktop/planpage/estimation
+cd /path/to/agentic-prd-estimator
 npm install
 npm run build
 ```
@@ -49,7 +49,7 @@ The MCP is registered in `~/.cursor/mcp.json`:
     "prd-estimator": {
       "type": "stdio",
       "command": "node",
-      "args": ["/Users/shreyasjanivara/Desktop/planpage/estimation/build/index.js"],
+      "args": ["/path/to/agentic-prd-estimator/build/index.js"],
       "env": {
         "GITHUB_ORG": "superbet-group",
         "JIRA_CLOUD_ID": "axilis.atlassian.net",
@@ -149,7 +149,7 @@ The `estimate_from_prd` prompt automatically loads this data and uses P75 cycle 
 All markdown estimation files are written to:
 
 ```
-/Users/shreyasjanivara/Desktop/planpage/estimation/mdfiles/
+<project-root>/mdfiles/
 ```
 
 Each estimation includes:

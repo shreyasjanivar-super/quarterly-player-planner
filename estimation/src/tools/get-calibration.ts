@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const CALIBRATION_PATH =
-  "/Users/shreyasjanivara/Desktop/planpage/estimation/calibration.json";
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const CALIBRATION_PATH = join(packageRoot, "calibration.json");
 
 export const getCalibrationSchema = z.object({
   filter_project: z

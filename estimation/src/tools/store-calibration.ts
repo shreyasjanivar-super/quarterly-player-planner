@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { writeFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const CALIBRATION_PATH =
-  "/Users/shreyasjanivara/Desktop/planpage/estimation/calibration.json";
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const CALIBRATION_PATH = join(packageRoot, "calibration.json");
 
 const prDataSchema = z.object({
   url: z.string(),

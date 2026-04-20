@@ -65,7 +65,7 @@ Takes structured ticket + PR + tenure data and builds a calibration JSON file wi
   - Lines changed per ticket (sum of PR additions + deletions)
   - Averages grouped by: issue type, complexity bucket, tenure bracket (0-6mo, 6-12mo, 12+mo)
   - Velocity percentiles (p25, p50, p75)
-- **Writes to**: `/Users/shreyasjanivara/Desktop/planpage/estimation/calibration.json`
+- **Writes to**: `calibration.json` at the MCP package root (same directory as `package.json`)
 - **File**: [src/tools/store-calibration.ts](src/tools/store-calibration.ts)
 
 ### 3. `get_calibration_stats`

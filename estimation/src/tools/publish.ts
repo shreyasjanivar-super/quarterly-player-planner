@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildMarkdown, type WorkPackageRow } from "../lib/markdown.js";
 import { publishToNotion } from "../lib/notion.js";
 
-const MD_OUTPUT_DIR = "/Users/shreyasjanivara/Desktop/planpage/estimation/mdfiles";
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const MD_OUTPUT_DIR = join(packageRoot, "mdfiles");
 
 const relatedPrSchema = z.object({
   title: z.string(),
