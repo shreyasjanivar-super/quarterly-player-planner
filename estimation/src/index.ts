@@ -101,7 +101,9 @@ server.registerTool(
   {
     title: "Match Tickets to PRs",
     description:
-      `Batch-search the ${ORG} GitHub org for merged PRs matching Jira ticket keys. ` +
+      `Batch-search the ${ORG} GitHub org for merged PRs matching Jira ticket keys ` +
+      "(quoted in:title / in:body first, then keyword and Jira browse-URL fallbacks; " +
+      "override browse host with JIRA_BROWSE_HOST). " +
       "Returns a map of ticket key to matched PRs with lines changed, files, and merge dates.",
     inputSchema: matchTicketsSchema,
   },
