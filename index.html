@@ -1239,7 +1239,11 @@ const EXTRA_TRIBES = ['Gaming', 'Sports', 'Social', 'Data', 'Design'];
 const ALL_TRIBE_OPTIONS = [...TRIBES, ...EXTRA_TRIBES];
 
 const TRIBE_SQUADS = {
+  'Manage': ['Manage A', 'Manage B', 'Manage C', 'Manage D'],
   'Engagement': ['Engagement Integrations', 'Grayskull (Bonus)', 'Thundercats (Promo)', 'Engagement Platform', 'Loyalty'],
+  'Transact': ['Transact A', 'Transact B', 'Transact C', 'Transact D'],
+  'Fraud': ['Fraud A', 'Fraud B', 'Fraud C', 'Fraud D'],
+  'Retail': ['Retail A', 'Retail B', 'Retail C', 'Retail D'],
 };
 
 const expandedTribes = new Set();
@@ -1663,6 +1667,24 @@ function renderTshirtTable() {
   tbody.innerHTML = html;
 }
 
+function sizeSummaryHtml(rows, cap) {
+  const counts = {};
+  rows.forEach(r => {
+    const size = r[cap + '_size'];
+    const count = r[cap + '_count'] || 0;
+    if (size && count > 0) {
+      counts[size] = (counts[size] || 0) + count;
+    }
+  });
+  const order = TSHIRT_SIZES.map(s => s.label);
+  const parts = order.filter(l => counts[l]).map(l =>
+    `<span class="tshirt-badge ${l.toLowerCase()}" style="font-size:0.7rem;padding:0.12rem 0.4rem;">${l}</span><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;margin-left:1px;">×${counts[l]}</span>`
+  );
+  return parts.length > 0
+    ? `<div style="display:flex;align-items:center;justify-content:center;gap:0.4rem;flex-wrap:wrap;">${parts.join('')}</div>`
+    : '—';
+}
+
 // ── Capacity Table ──
 function renderCapacityTable() {
   const tbody = document.getElementById('capacity-body');
@@ -1674,15 +1696,14 @@ function renderCapacityTable() {
     const expanded = expandedTribes.has(tribe);
 
     if (hasSquads) {
-      const totals = getTribeTotals(tribe);
+      const tribeRows = getCapacityRowsForTribe(tribe);
       const chevronCls = expanded ? 'tribe-chevron expanded' : 'tribe-chevron';
       html += `<tr class="tribe-header-row" onclick="toggleTribeExpand('${tribe}', event)">
         <td style="font-weight:600;padding-left:1rem;">
           <span class="${chevronCls}">&#9654;</span>${tribe}
         </td>`;
       CAPABILITIES.forEach(cap => {
-        const t = totals[cap + '_count'];
-        html += `<td style="text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.85rem;color:var(--text);">${t > 0 ? t : '—'}</td>`;
+        html += `<td style="text-align:center;">${sizeSummaryHtml(tribeRows, cap)}</td>`;
       });
       html += `</tr>`;
 
@@ -1702,8 +1723,9 @@ function renderCapacityTable() {
         });
       }
     } else {
-      const row = capacityRows.find(r => r.tribe === tribe && !r.squad);
-      if (row) {
+      const tribeRows = getCapacityRowsForTribe(tribe);
+      if (tribeRows.length === 1 && !tribeRows[0].squad) {
+        const row = tribeRows[0];
         html += `<tr>
           <td style="font-weight:600;padding-left:1.25rem;">${row.tribe}</td>
           ${CAPABILITIES.map(cap => `
@@ -1718,16 +1740,10 @@ function renderCapacityTable() {
     }
   });
 
-  const capTotals = {};
-  CAPABILITIES.forEach(cap => {
-    capTotals[cap] = capacityRows.reduce((s, r) => s + capCellCount(r[cap + '_size'], r[cap + '_count']), 0);
-  });
-
   html += `<tr style="border-top:2px solid var(--border);background:rgba(99,102,241,0.06);">`;
   html += `<td style="font-weight:700;padding-left:1.25rem;color:var(--accent-light);">Player (Total)</td>`;
   CAPABILITIES.forEach(cap => {
-    const t = capTotals[cap];
-    html += `<td style="text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.9rem;color:var(--accent-light);">${t > 0 ? t : '—'}</td>`;
+    html += `<td style="text-align:center;">${sizeSummaryHtml(capacityRows, cap)}</td>`;
   });
   html += `</tr>`;
 
