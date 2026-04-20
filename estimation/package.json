@@ -1,0 +1,26 @@
+{
+  "name": "prd-estimator",
+  "version": "1.0.0",
+  "description": "MCP server that analyzes GitHub repos against a PRD and produces effort estimations",
+  "type": "module",
+  "bin": {
+    "prd-estimator": "./build/index.js"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node build/index.js",
+    "dev": "npx tsc --watch"
+  },
+  "files": [
+    "build"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/server": "alpha",
+    "@notionhq/client": "^2.2.15",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

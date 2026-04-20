@@ -182,40 +182,7 @@
 
     .icon-capacity { background: rgba(81, 207, 102, 0.15); color: var(--success); }
 
-    .tshirt-table { max-width: 520px; }
-    .tshirt-table input[type="number"] { width: 70px; text-align: center; }
-    .tshirt-table input.tshirt-error {
-      border-color: var(--danger) !important;
-      box-shadow: 0 0 0 2px rgba(255,107,107,0.25);
-      animation: shake 0.35s ease;
-    }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-4px); }
-      40% { transform: translateX(4px); }
-      60% { transform: translateX(-3px); }
-      80% { transform: translateX(2px); }
-    }
-    .tshirt-validation-msg {
-      font-size: 0.8rem;
-      color: var(--danger);
-      margin-top: 0.6rem;
-      min-height: 1.2em;
-      background: rgba(255,107,107,0.08);
-      border: 1px solid rgba(255,107,107,0.25);
-      border-radius: 8px;
-      padding: 0.6rem 0.85rem;
-      line-height: 1.5;
-      display: none;
-    }
-    .tshirt-validation-msg.visible { display: block; }
-    .tshirt-validation-msg .tshirt-err-icon { margin-right: 0.4rem; }
-    .tshirt-validation-msg .tshirt-err-rule {
-      display: block;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-    }
+    .tshirt-table { max-width: 560px; }
     .tshirt-badge {
       display: inline-block;
       font-weight: 700;
@@ -424,6 +391,27 @@
     .capacity-table td input[type="number"] {
       width: 100%;
       text-align: center;
+    }
+
+    .tribe-header-row {
+      cursor: pointer;
+      user-select: none;
+    }
+    .tribe-header-row:hover { background: rgba(255,255,255,0.03); }
+    .tribe-chevron {
+      display: inline-block;
+      font-size: 0.65rem;
+      margin-right: 0.35rem;
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+    }
+    .tribe-chevron.expanded { transform: rotate(90deg); }
+    .squad-row td { background: rgba(255,255,255,0.015); }
+    .squad-row td:first-child {
+      padding-left: 2.2rem;
+      font-weight: 400;
+      font-size: 0.82rem;
+      color: var(--text-muted);
     }
 
     .pct-bar-container {
@@ -1093,7 +1081,7 @@
   </div>
 </div>
 
-<!-- T-Shirt Size Config Section -->
+<!-- T-Shirt Size Guide Section -->
 <div class="section" id="section-tshirt">
   <div class="section-header" onclick="toggleSection('section-tshirt')">
     <div class="section-title">
@@ -1103,18 +1091,18 @@
     </div>
   </div>
   <div class="section-body">
+    <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem;">Based on <a href="https://www.notion.so/superbet/HANDBOOK-Setting-up-Jira-for-P-T-Roadmapping-318032f852c58057a66ce19cf7a22d9e" target="_blank" style="color:var(--accent-light);text-decoration:none;">SuperBet P&T Roadmapping Handbook</a>. T-shirt sizes are rough estimates, not commitments. When in doubt, size up.</p>
     <table class="capacity-table tshirt-table" id="tshirt-table">
       <thead>
         <tr>
           <th style="width:80px;">Size</th>
-          <th>Min Days</th>
-          <th>Max Days</th>
-          <th style="width:100px;">Midpoint</th>
+          <th>Duration (Weeks)</th>
+          <th style="width:120px;">~ Days</th>
+          <th style="width:100px;">Midpoint (d)</th>
         </tr>
       </thead>
       <tbody id="tshirt-body"></tbody>
     </table>
-    <div class="tshirt-validation-msg" id="tshirt-validation-msg"></div>
   </div>
 </div>
 
@@ -1128,10 +1116,10 @@
     </div>
   </div>
   <div class="section-body">
-    <table class="capacity-table" id="capacity-table" style="max-width:520px;">
+    <table class="capacity-table" id="capacity-table" style="max-width:580px;">
       <thead>
         <tr>
-          <th style="width:130px;">Tribe</th>
+          <th style="width:200px;">Tribe / Squad</th>
           <th style="width:160px;">BE</th>
           <th style="width:160px;">FE</th>
         </tr>
@@ -1210,6 +1198,20 @@
   </div>
 </div>
 
+<!-- Allocation by Category Section -->
+<div class="section" id="section-allocation">
+  <div class="section-header" onclick="toggleSection('section-allocation')">
+    <div class="section-title">
+      <span class="icon" style="background:rgba(255,169,77,0.15);color:#ffa94d;">&#9638;</span>
+      Allocation by Category
+      <span class="section-chevron">&#9660;</span>
+    </div>
+  </div>
+  <div class="section-body">
+    <div id="allocation-table-container"></div>
+  </div>
+</div>
+
 <!-- Gantt Chart Section -->
 <div class="section" id="section-gantt">
   <div class="section-header" onclick="toggleSection('section-gantt', event)">
@@ -1231,24 +1233,16 @@
   </div>
 </div>
 
-<!-- Allocation by Category Section -->
-<div class="section" id="section-allocation">
-  <div class="section-header" onclick="toggleSection('section-allocation')">
-    <div class="section-title">
-      <span class="icon" style="background:rgba(255,169,77,0.15);color:#ffa94d;">&#9638;</span>
-      Allocation by Category
-      <span class="section-chevron">&#9660;</span>
-    </div>
-  </div>
-  <div class="section-body">
-    <div id="allocation-table-container"></div>
-  </div>
-</div>
-
 <script>
 const TRIBES = ['Manage', 'Engagement', 'Transact', 'Fraud', 'Retail'];
 const EXTRA_TRIBES = ['Gaming', 'Sports', 'Social', 'Data', 'Design'];
 const ALL_TRIBE_OPTIONS = [...TRIBES, ...EXTRA_TRIBES];
+
+const TRIBE_SQUADS = {
+  'Engagement': ['Engagement Integrations', 'Grayskull (Bonus)', 'Thundercats (Promo)', 'Engagement Platform', 'Loyalty'],
+};
+
+const expandedTribes = new Set();
 const CAPABILITIES = ['BE', 'FE'];
 const CATEGORIES = ['Carry Forward', 'KTLO', 'Scalability', 'Product Improvements', 'RO Migration', 'Innovation'];
 const PRIORITIES = ['P0', 'P1', 'P2', 'P3', 'NA'];
@@ -1257,11 +1251,11 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 let ganttLabelWidth = 220;
 
 const TSHIRT_SIZES = [
-  { label: 'XS', min: 0,   max: 10  },
-  { label: 'S',  min: 11,  max: 25  },
-  { label: 'M',  min: 26,  max: 60  },
-  { label: 'L',  min: 61,  max: 100 },
-  { label: 'XL', min: 101, max: 150 },
+  { label: 'XS', minWeeks: 0,  maxWeeks: 4,  min: 0,   max: 20  },
+  { label: 'S',  minWeeks: 5,  maxWeeks: 9,  min: 25,  max: 45  },
+  { label: 'M',  minWeeks: 10, maxWeeks: 19, min: 50,  max: 95  },
+  { label: 'L',  minWeeks: 20, maxWeeks: 39, min: 100, max: 195 },
+  { label: 'XL', minWeeks: 40, maxWeeks: 52, min: 200, max: 260 },
 ];
 const TSHIRT_LABELS = ['', ...TSHIRT_SIZES.map(s => s.label)];
 
@@ -1494,7 +1488,38 @@ function getCatBarClass(cat) {
 
 // ── Capacity ──
 function initCapacityRows() {
-  capacityRows = TRIBES.map(tribe => ({ id: nextCapId++, tribe, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 }));
+  capacityRows = [];
+  TRIBES.forEach(tribe => {
+    const squads = TRIBE_SQUADS[tribe];
+    if (squads) {
+      squads.forEach(squad => {
+        capacityRows.push({ id: nextCapId++, tribe, squad, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 });
+      });
+    } else {
+      capacityRows.push({ id: nextCapId++, tribe, squad: null, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 });
+    }
+  });
+}
+
+function getCapacityRowsForTribe(tribe) {
+  return capacityRows.filter(r => r.tribe === tribe);
+}
+
+function getTribeTotals(tribe) {
+  const rows = getCapacityRowsForTribe(tribe);
+  const totals = {};
+  CAPABILITIES.forEach(cap => {
+    totals[cap + '_count'] = rows.reduce((s, r) => s + capCellCount(r[cap + '_size'], r[cap + '_count']), 0);
+    totals[cap + '_days'] = rows.reduce((s, r) => s + capCellDays(r[cap + '_size'], r[cap + '_count']), 0);
+  });
+  return totals;
+}
+
+function toggleTribeExpand(tribe, evt) {
+  if (evt) evt.stopPropagation();
+  if (expandedTribes.has(tribe)) expandedTribes.delete(tribe);
+  else expandedTribes.add(tribe);
+  renderCapacityTable();
 }
 
 function addInitiativeRow() {
@@ -1572,92 +1597,7 @@ function updateInitiative(id, field, value) {
   }
 }
 
-let tshirtErrorTimeout = null;
-
-function showTshirtError(msg, rule) {
-  const el = document.getElementById('tshirt-validation-msg');
-  el.innerHTML = `<span class="tshirt-err-icon">&#9888;</span>${msg}${rule ? `<span class="tshirt-err-rule">${rule}</span>` : ''}`;
-  el.classList.add('visible');
-  clearTimeout(tshirtErrorTimeout);
-  tshirtErrorTimeout = setTimeout(() => el.classList.remove('visible'), 6000);
-}
-
-function clearTshirtError() {
-  const el = document.getElementById('tshirt-validation-msg');
-  el.classList.remove('visible');
-  el.innerHTML = '';
-}
-
-function updateTshirtConfig(idx, field, value) {
-  const MAX_DAYS = 150;
-  const v = parseInt(value) || 0;
-  const s = TSHIRT_SIZES[idx];
-  const oldVal = s[field];
-
-  if (v < 0) {
-    showTshirtError(
-      `Cannot set ${s.label} ${field} to a negative number.`,
-      'All values must be 0 or greater.'
-    );
-    renderTshirtTable();
-    return;
-  }
-
-  if (v > MAX_DAYS) {
-    showTshirtError(
-      `Cannot set ${s.label} ${field} to ${v} days — the maximum allowed is ${MAX_DAYS}.`,
-      'Rule: No t-shirt size can exceed 150 days.'
-    );
-    renderTshirtTable();
-    return;
-  }
-
-  if (field === 'min' && v > s.max) {
-    showTshirtError(
-      `Cannot set ${s.label} min to ${v} — it would exceed its own max of ${s.max}.`,
-      'Rule: Min days must be less than or equal to max days within the same size.'
-    );
-    renderTshirtTable();
-    return;
-  }
-
-  if (field === 'max' && v < s.min) {
-    showTshirtError(
-      `Cannot set ${s.label} max to ${v} — it would be less than its own min of ${s.min}.`,
-      'Rule: Max days must be greater than or equal to min days within the same size.'
-    );
-    renderTshirtTable();
-    return;
-  }
-
-  if (field === 'min' && idx > 0) {
-    const prev = TSHIRT_SIZES[idx - 1];
-    if (v <= prev.max) {
-      showTshirtError(
-        `Cannot set ${s.label} min to ${v} — it must be greater than ${prev.label}'s max of ${prev.max} to avoid overlapping ranges.`,
-        `Rule: Each size's min must be strictly greater than the previous size's max.`
-      );
-      renderTshirtTable();
-      return;
-    }
-  }
-
-  if (field === 'max' && idx < TSHIRT_SIZES.length - 1) {
-    const next = TSHIRT_SIZES[idx + 1];
-    if (v >= next.min) {
-      showTshirtError(
-        `Cannot set ${s.label} max to ${v} — it would overlap with ${next.label}'s min of ${next.min}. Adjust ${next.label}'s min first.`,
-        `Rule: Each size's max must be strictly less than the next size's min.`
-      );
-      renderTshirtTable();
-      return;
-    }
-  }
-
-  clearTshirtError();
-  s[field] = v;
-  renderAll();
-}
+// T-shirt config is now read-only (based on SuperBet P&T Handbook)
 
 function setPrdUrl(id, url) {
   const row = initiativeRows.find(r => r.id === id);
@@ -1705,17 +1645,18 @@ function renderQuarterBadge() {
     : '';
 }
 
-// ── T-Shirt Config Table ──
+// ── T-Shirt Size Guide (read-only) ──
 function renderTshirtTable() {
   const tbody = document.getElementById('tshirt-body');
   let html = '';
-  TSHIRT_SIZES.forEach((s, idx) => {
+  TSHIRT_SIZES.forEach((s) => {
     const mid = Math.round((s.min + s.max) / 2);
     const cls = s.label.toLowerCase();
+    const weeksLabel = s.label === 'XL' ? `${s.minWeeks}+` : `${s.minWeeks}–${s.maxWeeks}`;
     html += `<tr>
       <td><span class="tshirt-badge ${cls}">${s.label}</span></td>
-      <td><input type="number" min="0" max="150" value="${s.min}" onchange="updateTshirtConfig(${idx},'min',this.value)" style="width:70px;text-align:center;"></td>
-      <td><input type="number" min="0" max="150" value="${s.max}" onchange="updateTshirtConfig(${idx},'max',this.value)" style="width:70px;text-align:center;"></td>
+      <td style="font-family:'JetBrains Mono',monospace;text-align:center;color:var(--text);">${weeksLabel} weeks</td>
+      <td style="font-family:'JetBrains Mono',monospace;text-align:center;color:var(--text-muted);">${s.min}–${s.max}</td>
       <td style="font-family:'JetBrains Mono',monospace;color:var(--text-muted);text-align:center;">${mid} d</td>
     </tr>`;
   });
@@ -1726,17 +1667,55 @@ function renderTshirtTable() {
 function renderCapacityTable() {
   const tbody = document.getElementById('capacity-body');
   let html = '';
-  capacityRows.forEach(row => {
-    html += `<tr>
-      <td style="font-weight:600;padding-left:1.25rem;">${row.tribe}</td>
-      ${CAPABILITIES.map(cap => `
-        <td style="text-align:center;">${tshirtPairHtml(
-          row[cap + '_size'], row[cap + '_count'],
-          `updateCapacity(${row.id}, '${cap}_size', this.value)`,
-          `updateCapacity(${row.id}, '${cap}_count', this.value)`
-        )}</td>
-      `).join('')}
-    </tr>`;
+
+  TRIBES.forEach(tribe => {
+    const squads = TRIBE_SQUADS[tribe];
+    const hasSquads = squads && squads.length > 0;
+    const expanded = expandedTribes.has(tribe);
+
+    if (hasSquads) {
+      const totals = getTribeTotals(tribe);
+      const chevronCls = expanded ? 'tribe-chevron expanded' : 'tribe-chevron';
+      html += `<tr class="tribe-header-row" onclick="toggleTribeExpand('${tribe}', event)">
+        <td style="font-weight:600;padding-left:1rem;">
+          <span class="${chevronCls}">&#9654;</span>${tribe}
+        </td>`;
+      CAPABILITIES.forEach(cap => {
+        const t = totals[cap + '_count'];
+        html += `<td style="text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.85rem;color:var(--text);">${t > 0 ? t : '—'}</td>`;
+      });
+      html += `</tr>`;
+
+      if (expanded) {
+        const squadRows = getCapacityRowsForTribe(tribe);
+        squadRows.forEach(row => {
+          html += `<tr class="squad-row">
+            <td>${row.squad}</td>
+            ${CAPABILITIES.map(cap => `
+              <td style="text-align:center;">${tshirtPairHtml(
+                row[cap + '_size'], row[cap + '_count'],
+                `updateCapacity(${row.id}, '${cap}_size', this.value)`,
+                `updateCapacity(${row.id}, '${cap}_count', this.value)`
+              )}</td>
+            `).join('')}
+          </tr>`;
+        });
+      }
+    } else {
+      const row = capacityRows.find(r => r.tribe === tribe && !r.squad);
+      if (row) {
+        html += `<tr>
+          <td style="font-weight:600;padding-left:1.25rem;">${row.tribe}</td>
+          ${CAPABILITIES.map(cap => `
+            <td style="text-align:center;">${tshirtPairHtml(
+              row[cap + '_size'], row[cap + '_count'],
+              `updateCapacity(${row.id}, '${cap}_size', this.value)`,
+              `updateCapacity(${row.id}, '${cap}_count', this.value)`
+            )}</td>
+          `).join('')}
+        </tr>`;
+      }
+    }
   });
 
   const capTotals = {};
@@ -2393,9 +2372,8 @@ function collectAppState() {
   return {
     quarter: document.getElementById('quarter-select').value,
     year: parseInt(document.getElementById('year-select').value),
-    tshirtSizes: TSHIRT_SIZES.map(s => ({ label: s.label, min: s.min, max: s.max })),
     capacity: capacityRows.map(r => ({
-      tribe: r.tribe,
+      tribe: r.tribe, squad: r.squad || null,
       BE_size: r.BE_size, BE_count: r.BE_count,
       FE_size: r.FE_size, FE_count: r.FE_count
     })),
@@ -2418,22 +2396,33 @@ function applyAppState(state) {
   if (state.quarter) document.getElementById('quarter-select').value = state.quarter;
   if (state.year) document.getElementById('year-select').value = state.year;
 
-  if (state.tshirtSizes && Array.isArray(state.tshirtSizes)) {
-    state.tshirtSizes.forEach((s, i) => {
-      if (TSHIRT_SIZES[i]) {
-        TSHIRT_SIZES[i].min = s.min;
-        TSHIRT_SIZES[i].max = s.max;
-      }
-    });
-  }
-
   if (state.capacity && Array.isArray(state.capacity)) {
-    capacityRows = state.capacity.map((r, i) => ({
-      id: i + 1,
-      tribe: r.tribe || TRIBES[i] || '',
-      BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
-      FE_size: r.FE_size || '', FE_count: r.FE_count || 0
-    }));
+    if (state.capacity.some(r => r.squad)) {
+      capacityRows = state.capacity.map((r, i) => ({
+        id: i + 1,
+        tribe: r.tribe || '',
+        squad: r.squad || null,
+        BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
+        FE_size: r.FE_size || '', FE_count: r.FE_count || 0
+      }));
+    } else {
+      capacityRows = [];
+      state.capacity.forEach((r, i) => {
+        const tribe = r.tribe || TRIBES[i] || '';
+        const squads = TRIBE_SQUADS[tribe];
+        if (squads) {
+          squads.forEach(sq => {
+            capacityRows.push({ id: capacityRows.length + 1, tribe, squad: sq, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 });
+          });
+        } else {
+          capacityRows.push({
+            id: capacityRows.length + 1, tribe, squad: null,
+            BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
+            FE_size: r.FE_size || '', FE_count: r.FE_count || 0
+          });
+        }
+      });
+    }
     nextCapId = capacityRows.length + 1;
   }
 
