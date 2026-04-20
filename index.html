@@ -989,6 +989,45 @@
       padding: 0.4rem 0.75rem 0.2rem;
     }
 
+    /* ── Sync status bar ── */
+    .sync-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.78rem;
+    }
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .sync-dot.saved { background: var(--success); }
+    .sync-dot.saving { background: var(--warning); animation: pulse 1s infinite; }
+    .sync-dot.error { background: var(--danger); }
+    .sync-dot.offline { background: var(--text-muted); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .sync-label { color: var(--text-muted); }
+    .sync-user { color: var(--accent-light); font-weight: 600; font-size: 0.72rem; }
+    .sync-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+    .sync-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sync-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+
     @media (max-width: 1200px) {
       body { padding: 1rem; }
       .app-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
@@ -1020,6 +1059,37 @@
     </select>
     <span class="quarter-date-badge" id="quarter-date-badge"></span>
     <span class="quarter-working-days" id="quarter-working-days"></span>
+  </div>
+</div>
+
+<!-- Sync Status Bar -->
+<div class="sync-bar" id="sync-bar">
+  <span class="sync-dot offline" id="sync-dot"></span>
+  <span class="sync-label" id="sync-label">Not connected</span>
+  <span class="sync-user" id="sync-user"></span>
+  <div class="sync-actions">
+    <button class="sync-btn" onclick="pullFromGitHub()" title="Pull latest data from GitHub">&#8635; Pull</button>
+    <button class="sync-btn" onclick="pushToGitHub()" title="Push current data to GitHub">&#8593; Push</button>
+    <button class="sync-btn" onclick="openGitHubModal()" title="Configure GitHub connection">&#9881; Setup</button>
+  </div>
+</div>
+
+<!-- GitHub Config Modal -->
+<div class="modal-overlay" id="github-modal">
+  <div class="modal">
+    <h3>&#128279; GitHub Sync</h3>
+    <p class="modal-desc">Connect to a GitHub repo to persist your planning data. All users sharing the same repo will see each other's changes. Generate a <a href="https://github.com/settings/tokens/new?scopes=repo&description=Quarterly+Player+Planner" target="_blank" style="color:var(--accent-light);">Personal Access Token</a> with <code>repo</code> scope.</p>
+    <label for="gh-owner">Repository Owner</label>
+    <input type="text" id="gh-owner" placeholder="e.g. shreyasjanivar-super">
+    <label for="gh-repo">Repository Name</label>
+    <input type="text" id="gh-repo" placeholder="e.g. quarterly-player-planner">
+    <label for="gh-token">Personal Access Token</label>
+    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeGitHubModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGitHubConfig()">Save &amp; Connect</button>
+    </div>
+    <div class="refresh-status" id="gh-modal-status"></div>
   </div>
 </div>
 
@@ -2240,23 +2310,280 @@ const JIRA_INITIATIVES = [
   { name: 'On demand Balance - consolidation wallet', key: 'PLAYER-1062', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'To Do' },
 ];
 
-JIRA_INITIATIVES.forEach(init => {
-  initiativeRows.push({
-    id: nextInitId++,
-    name: init.name,
-    category: init.category || CATEGORIES[0],
-    tribes: [...init.tribes],
-    est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0,
-    priority: init.priority || 'P1',
-    jiraStartDate: init.created || null,
-    jiraDueDate: init.dueDate || null,
-    jiraStatus: init.status || null,
-    jiraKey: init.key || null,
-    prd: null,
-    prdFileName: null
+function loadJiraDefaults() {
+  JIRA_INITIATIVES.forEach(init => {
+    initiativeRows.push({
+      id: nextInitId++,
+      name: init.name,
+      category: init.category || CATEGORIES[0],
+      tribes: [...init.tribes],
+      est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0,
+      priority: init.priority || 'P1',
+      jiraStartDate: init.created || null,
+      jiraDueDate: init.dueDate || null,
+      jiraStatus: init.status || null,
+      jiraKey: init.key || null,
+      prd: null,
+      prdFileName: null
+    });
   });
-});
-renderAll();
+}
+
+// ── GitHub Persistence ──
+const GH_OWNER_KEY = 'planpage_gh_owner';
+const GH_REPO_KEY  = 'planpage_gh_repo';
+const GH_TOKEN_KEY = 'planpage_gh_token';
+const GH_FILE_PATH = 'data.json';
+let ghFileSha = null;
+let ghSaveTimeout = null;
+let ghSaving = false;
+
+function getGHConfig() {
+  return {
+    owner: localStorage.getItem(GH_OWNER_KEY) || '',
+    repo:  localStorage.getItem(GH_REPO_KEY)  || '',
+    token: localStorage.getItem(GH_TOKEN_KEY) || ''
+  };
+}
+
+function hasGHConfig() {
+  const c = getGHConfig();
+  return c.owner && c.repo && c.token;
+}
+
+function openGitHubModal() {
+  const c = getGHConfig();
+  document.getElementById('gh-owner').value = c.owner;
+  document.getElementById('gh-repo').value = c.repo;
+  document.getElementById('gh-token').value = c.token;
+  document.getElementById('gh-modal-status').className = 'refresh-status';
+  document.getElementById('gh-modal-status').textContent = '';
+  document.getElementById('github-modal').classList.add('open');
+}
+
+function closeGitHubModal() {
+  document.getElementById('github-modal').classList.remove('open');
+}
+
+function saveGitHubConfig() {
+  const owner = document.getElementById('gh-owner').value.trim();
+  const repo  = document.getElementById('gh-repo').value.trim();
+  const token = document.getElementById('gh-token').value.trim();
+  if (!owner || !repo || !token) {
+    const st = document.getElementById('gh-modal-status');
+    st.textContent = 'All fields are required.';
+    st.className = 'refresh-status error';
+    return;
+  }
+  localStorage.setItem(GH_OWNER_KEY, owner);
+  localStorage.setItem(GH_REPO_KEY, repo);
+  localStorage.setItem(GH_TOKEN_KEY, token);
+  closeGitHubModal();
+  pullFromGitHub();
+}
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  label.textContent = msg;
+}
+
+function collectAppState() {
+  return {
+    quarter: document.getElementById('quarter-select').value,
+    year: parseInt(document.getElementById('year-select').value),
+    tshirtSizes: TSHIRT_SIZES.map(s => ({ label: s.label, min: s.min, max: s.max })),
+    capacity: capacityRows.map(r => ({
+      tribe: r.tribe,
+      BE_size: r.BE_size, BE_count: r.BE_count,
+      FE_size: r.FE_size, FE_count: r.FE_count
+    })),
+    initiatives: initiativeRows.map(r => ({
+      name: r.name, category: r.category, tribes: [...r.tribes],
+      est_BE_size: r.est_BE_size, est_BE_count: r.est_BE_count,
+      est_FE_size: r.est_FE_size, est_FE_count: r.est_FE_count,
+      priority: r.priority,
+      jiraStartDate: r.jiraStartDate, jiraDueDate: r.jiraDueDate,
+      jiraStatus: r.jiraStatus, jiraKey: r.jiraKey,
+      prd: r.prd, prdFileName: r.prdFileName
+    })),
+    lastUpdatedBy: getGHConfig().owner || 'local',
+    lastUpdatedAt: new Date().toISOString()
+  };
+}
+
+function applyAppState(state) {
+  if (!state) return;
+  if (state.quarter) document.getElementById('quarter-select').value = state.quarter;
+  if (state.year) document.getElementById('year-select').value = state.year;
+
+  if (state.tshirtSizes && Array.isArray(state.tshirtSizes)) {
+    state.tshirtSizes.forEach((s, i) => {
+      if (TSHIRT_SIZES[i]) {
+        TSHIRT_SIZES[i].min = s.min;
+        TSHIRT_SIZES[i].max = s.max;
+      }
+    });
+  }
+
+  if (state.capacity && Array.isArray(state.capacity)) {
+    capacityRows = state.capacity.map((r, i) => ({
+      id: i + 1,
+      tribe: r.tribe || TRIBES[i] || '',
+      BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
+      FE_size: r.FE_size || '', FE_count: r.FE_count || 0
+    }));
+    nextCapId = capacityRows.length + 1;
+  }
+
+  if (state.initiatives && Array.isArray(state.initiatives)) {
+    initiativeRows = state.initiatives.map((r, i) => ({
+      id: i + 1,
+      name: r.name || '', category: r.category || CATEGORIES[0],
+      tribes: r.tribes || [],
+      est_BE_size: r.est_BE_size || '', est_BE_count: r.est_BE_count || 0,
+      est_FE_size: r.est_FE_size || '', est_FE_count: r.est_FE_count || 0,
+      priority: r.priority || 'P1',
+      jiraStartDate: r.jiraStartDate || null, jiraDueDate: r.jiraDueDate || null,
+      jiraStatus: r.jiraStatus || null, jiraKey: r.jiraKey || null,
+      prd: r.prd || null, prdFileName: r.prdFileName || null
+    }));
+    nextInitId = initiativeRows.length + 1;
+  }
+
+  if (state.lastUpdatedBy) {
+    document.getElementById('sync-user').textContent = `Last saved by ${state.lastUpdatedBy} at ${state.lastUpdatedAt ? new Date(state.lastUpdatedAt).toLocaleString() : '?'}`;
+  }
+
+  renderAll();
+}
+
+async function pullFromGitHub() {
+  if (!hasGHConfig()) { openGitHubModal(); return; }
+  const { owner, repo, token } = getGHConfig();
+  setSyncStatus('saving', 'Pulling from GitHub...');
+
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${GH_FILE_PATH}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (resp.status === 404) {
+      setSyncStatus('saved', 'No data.json found — loading defaults, will save on first change');
+      ghFileSha = null;
+      if (initiativeRows.length === 0) loadJiraDefaults();
+      _originalRenderAll();
+      return;
+    }
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+
+    const file = await resp.json();
+    ghFileSha = file.sha;
+    const content = JSON.parse(atob(file.content.replace(/\n/g, '')));
+    applyAppState(content);
+    setSyncStatus('saved', 'Synced with GitHub');
+  } catch (e) {
+    console.error('GitHub pull failed:', e);
+    setSyncStatus('error', 'Pull failed: ' + e.message);
+  }
+}
+
+async function pushToGitHub() {
+  if (!hasGHConfig()) { openGitHubModal(); return; }
+  if (ghSaving) return;
+  ghSaving = true;
+
+  const { owner, repo, token } = getGHConfig();
+  setSyncStatus('saving', 'Saving to GitHub...');
+
+  try {
+    if (!ghFileSha) {
+      const checkResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${GH_FILE_PATH}`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (checkResp.ok) {
+        const existing = await checkResp.json();
+        ghFileSha = existing.sha;
+      }
+    }
+
+    const state = collectAppState();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
+
+    const body = {
+      message: `Update planning data — ${new Date().toLocaleString()}`,
+      content: content,
+      branch: 'main'
+    };
+    if (ghFileSha) body.sha = ghFileSha;
+
+    const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${GH_FILE_PATH}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      if (resp.status === 409) {
+        setSyncStatus('error', 'Conflict — someone else saved. Click Pull first, then re-save.');
+        ghSaving = false;
+        return;
+      }
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+
+    const result = await resp.json();
+    ghFileSha = result.content.sha;
+    document.getElementById('sync-user').textContent = `Saved by ${getGHConfig().owner} at ${new Date().toLocaleString()}`;
+    setSyncStatus('saved', 'Saved to GitHub');
+  } catch (e) {
+    console.error('GitHub push failed:', e);
+    setSyncStatus('error', 'Save failed: ' + e.message);
+  } finally {
+    ghSaving = false;
+  }
+}
+
+function scheduleSave() {
+  if (!hasGHConfig()) return;
+  clearTimeout(ghSaveTimeout);
+  setSyncStatus('saving', 'Unsaved changes...');
+  ghSaveTimeout = setTimeout(() => pushToGitHub(), 3000);
+}
+
+// Patch renderAll to trigger auto-save
+const _originalRenderAll = renderAll;
+renderAll = function() {
+  _originalRenderAll();
+  scheduleSave();
+};
+
+// On page load: try pulling from GitHub, fall back to Jira defaults
+(async function initGitHub() {
+  if (hasGHConfig()) {
+    renderAll = _originalRenderAll;
+    await pullFromGitHub();
+    renderAll = function() { _originalRenderAll(); scheduleSave(); };
+  } else {
+    loadJiraDefaults();
+    renderAll = _originalRenderAll;
+    renderAll();
+    renderAll = function() { _originalRenderAll(); scheduleSave(); };
+  }
+})();
 </script>
 
 </body>

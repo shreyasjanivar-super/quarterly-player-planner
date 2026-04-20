@@ -1,0 +1,21 @@
+{
+  "quarter": "Q2",
+  "year": 2026,
+  "tshirtSizes": [
+    { "label": "XS", "min": 0, "max": 10 },
+    { "label": "S", "min": 11, "max": 25 },
+    { "label": "M", "min": 26, "max": 60 },
+    { "label": "L", "min": 61, "max": 100 },
+    { "label": "XL", "min": 101, "max": 150 }
+  ],
+  "capacity": [
+    { "tribe": "Manage", "BE_size": "", "BE_count": 0, "FE_size": "", "FE_count": 0 },
+    { "tribe": "Engagement", "BE_size": "", "BE_count": 0, "FE_size": "", "FE_count": 0 },
+    { "tribe": "Transact", "BE_size": "", "BE_count": 0, "FE_size": "", "FE_count": 0 },
+    { "tribe": "Fraud", "BE_size": "", "BE_count": 0, "FE_size": "", "FE_count": 0 },
+    { "tribe": "Retail", "BE_size": "", "BE_count": 0, "FE_size": "", "FE_count": 0 }
+  ],
+  "initiatives": [],
+  "lastUpdatedBy": "",
+  "lastUpdatedAt": ""
+}
