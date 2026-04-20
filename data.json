@@ -65,24 +65,7 @@
       "FE_count": 0
     }
   ],
-  "initiatives": [
-    {
-      "name": "",
-      "category": "Carry Forward",
-      "tribes": [],
-      "est_BE_size": "",
-      "est_BE_count": 0,
-      "est_FE_size": "",
-      "est_FE_count": 0,
-      "priority": "P1",
-      "jiraStartDate": null,
-      "jiraDueDate": null,
-      "jiraStatus": null,
-      "jiraKey": null,
-      "prd": null,
-      "prdFileName": null
-    }
-  ],
+  "initiatives": [],
   "lastUpdatedBy": "shreyasjanivar-super",
-  "lastUpdatedAt": "2026-04-20T11:38:12.135Z"
+  "lastUpdatedAt": "2026-04-20T11:38:15.589Z"
 }
