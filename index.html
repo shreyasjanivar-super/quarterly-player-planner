@@ -304,6 +304,32 @@
       color: var(--text-muted);
       font-weight: 600;
     }
+
+    .est-stacked { display: flex; flex-direction: column; gap: 0.4rem; }
+    .est-row { display: flex; align-items: center; gap: 0.4rem; }
+    .est-cap-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: right;
+    }
+    .est-stacked .tshirt-pair { gap: 0.35rem; }
+    .est-stacked .tshirt-pair .tshirt-select {
+      min-width: 56px;
+      font-size: 0.82rem;
+      padding: 0.3rem 0.4rem;
+    }
+    .est-stacked .tshirt-pair .tshirt-count {
+      width: 46px;
+      font-size: 0.82rem;
+      padding: 0.3rem 0.25rem;
+    }
+    .est-stacked .tshirt-pair .tshirt-x {
+      font-size: 0.75rem;
+    }
     .icon-initiatives { background: rgba(108, 92, 231, 0.15); color: var(--accent-light); }
     .icon-gantt { background: rgba(56, 217, 169, 0.15); color: var(--scalability); }
 
@@ -1256,16 +1282,13 @@
           <th rowspan="2" style="width:145px;">Category</th>
           <th rowspan="2" style="width:180px;">Squad(s)</th>
           <th rowspan="2" style="width:120px;">Tribe(s)</th>
-          <th colspan="2" class="group-header">Estimate (T-Shirt Size)</th>
+          <th rowspan="2" style="width:230px;">Estimate</th>
           <th rowspan="2" style="width:180px;">% Capacity</th>
           <th rowspan="2" style="width:80px;">Priority</th>
           <th rowspan="2" style="width:120px;">PRD</th>
           <th rowspan="2" style="width:40px;"></th>
         </tr>
-        <tr>
-          <th class="sub-header" style="width:100px;">BE</th>
-          <th class="sub-header" style="width:100px;">FE</th>
-        </tr>
+        <tr></tr>
       </thead>
       <tbody id="initiatives-body"></tbody>
     </table>
@@ -2053,7 +2076,7 @@ function computeInitiativeSchedule() {
 function renderInitiativesTable() {
   const { schedule, totalCapDays, capByCap } = computeInitiativeSchedule();
   const tbody = document.getElementById('initiatives-body');
-  const colCount = 10;
+  const colCount = 9;
   const tribeFilter = document.getElementById('initiatives-tribe-filter').value;
 
   let filtered = schedule;
@@ -2122,13 +2145,20 @@ function renderInitiativesTable() {
             : '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>'}
         </div>
       </td>
-      ${CAPABILITIES.map(cap => {
-        return `<td style="text-align:center;">${tshirtPairHtml(
-          row[`est_${cap}_size`], row[`est_${cap}_count`],
-          `updateInitiative(${row.id}, 'est_${cap}_size', this.value)`,
-          `updateInitiative(${row.id}, 'est_${cap}_count', this.value)`
-        )}</td>`;
-      }).join('')}
+      ${(() => {
+        let estHtml = '<td><div class="est-stacked">';
+        CAPABILITIES.forEach(cap => {
+          estHtml += '<div class="est-row"><span class="est-cap-label">' + cap + '</span>';
+          estHtml += tshirtPairHtml(
+            row['est_' + cap + '_size'], row['est_' + cap + '_count'],
+            "updateInitiative(" + row.id + ", 'est_" + cap + "_size', this.value)",
+            "updateInitiative(" + row.id + ", 'est_" + cap + "_count', this.value)"
+          );
+          estHtml += '</div>';
+        });
+        estHtml += '</div></td>';
+        return estHtml;
+      })()}
       <td>
         <div class="pct-bar-container">
           <div class="pct-bar"><div class="pct-bar-fill" style="width:${Math.min(row.weightedPct,100)}%"></div></div>
