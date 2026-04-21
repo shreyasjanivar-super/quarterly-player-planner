@@ -7,7 +7,7 @@ A single-page web application for visualising quarterly team planning across Pla
 - **Quarter & Year selection** with auto-calculated date ranges, working days, and UK bank holiday exclusions
 - **T-Shirt Size Guide** aligned to the [SuperBet P&T Roadmapping Handbook](https://www.notion.so/superbet/HANDBOOK-Setting-up-Jira-for-P-T-Roadmapping-318032f852c58057a66ce19cf7a22d9e) (XS through XL, in weeks) — read-only
 - **Player Capacity** table with tribe and squad-level breakdowns. All five tribes have real squad names sourced from the [Player Area Overview](https://www.notion.so/superbet/Player-Area-Overview-2a9032f852c581d0bc77e9508645f9c6). Tribe rows are collapsible and auto-sum their squad data with t-shirt size breakdowns
-- **Initiatives** table with category, multi-tribe assignment, t-shirt size estimates (BE & FE), priority, capacity utilisation %, and PRD links
+- **Initiatives** table with category, squad-level assignment (tribes auto-derived), t-shirt size estimates (BE & FE), priority, per-tribe utilisation bars, and PRD links
 - **Gantt Chart** with tribe filtering, uniform bar height, and resizable initiative column
 - **Allocation by Category** table showing percentage distribution across Carry Forward, KTLO, Scalability, Product Improvements, RO Migration, and Innovation
 - **Jira Integration** for pulling initiative data from Atlassian Jira and creating new issues (requires CORS proxy)
@@ -88,11 +88,11 @@ Use the **Quarter** and **Year** dropdowns at the top of the page. The date rang
 2. Fill in:
    - **Initiative Name** — a descriptive title
    - **Category** — Carry Forward, KTLO, Scalability, Product Improvements, RO Migration, or Innovation
-   - **Tribe(s)** — click the dropdown and select one or more tribes involved
+   - **Squad(s)** — click the dropdown and select the squads involved (grouped by tribe). The **Tribe(s)** column auto-populates based on the selected squads
    - **Estimate** — pick a t-shirt size and count for BE and FE effort
    - **Priority** — P0 (critical) through P3, or NA
    - **PRD** — paste a URL or upload a document
-3. The **% Capacity** column updates automatically based on your estimates vs. the capacity you set.
+3. The **Utilisation by Tribe** panel at the bottom shows per-tribe utilisation bars (demand vs. capacity) plus a **Player (Total)** bar. Bars turn red when over 100%.
 4. Use the **Filter by Tribe** dropdown to focus on a specific tribe's initiatives.
 5. Click the **✕** button on a row to remove an initiative.
 
@@ -122,7 +122,7 @@ Each tribe (Manage, Engagement, Transact, Fraud, Retail) has capacity defined pe
 
 ### Initiative Estimates
 
-Initiatives are estimated per capability using the same t-shirt size × count model. The **% Capacity Utilised** column shows how much of each capability's total capacity the initiative consumes.
+Initiatives are estimated per capability using the same t-shirt size × count model. Each initiative is assigned to one or more **squads** — the tribe is derived automatically. The **Utilisation by Tribe** panel shows how much of each tribe's capacity is consumed by its assigned initiatives, with a Player-wide total. Multi-tribe initiatives split their demand evenly across the assigned tribes.
 
 ### Date Calculations
 
