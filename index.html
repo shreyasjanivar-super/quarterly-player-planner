@@ -1151,6 +1151,7 @@
   <span class="sync-dot offline" id="sync-dot"></span>
   <span class="sync-label" id="sync-label">Not connected</span>
   <span class="sync-user" id="sync-user"></span>
+  <span class="info-tooltip-wrap"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>GitHub Sync</strong><br>This bar shows the connection status to your GitHub repository, which stores planning data so the team can collaborate.<ul><li><strong>Pull</strong> — loads the latest data from GitHub (use when someone else has made changes).</li><li><strong>Push</strong> — saves your current data to GitHub.</li><li><strong>Setup</strong> — configure the repo owner, repo name, and a <em>Personal Access Token</em> with <code>repo</code> scope.</li><li>Data auto-saves after each edit when connected.</li><li>The status dot shows: <span style="color:var(--success);">green</span> = synced, <span style="color:var(--warning);">yellow</span> = saving, <span style="color:var(--danger);">red</span> = error, <span style="color:var(--text-muted);">grey</span> = not connected.</li></ul></div></span>
   <div class="sync-actions">
     <button class="sync-btn" onclick="pullFromGitHub()" title="Pull latest data from GitHub">&#8635; Pull</button>
     <button class="sync-btn" onclick="pushToGitHub()" title="Push current data to GitHub">&#8593; Push</button>
