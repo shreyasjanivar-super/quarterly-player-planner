@@ -180,6 +180,80 @@
       font-size: 0.85rem;
     }
 
+    .info-tooltip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      margin-left: 0.35rem;
+    }
+    .info-tooltip-btn {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: rgba(108,92,231,0.18);
+      color: var(--accent-light);
+      border: 1px solid rgba(108,92,231,0.3);
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1;
+    }
+    .info-tooltip-btn:hover {
+      background: rgba(108,92,231,0.32);
+      border-color: var(--accent-light);
+    }
+    .info-tooltip-card {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 340px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.55;
+      text-align: left;
+      cursor: default;
+      user-select: text;
+    }
+    .info-tooltip-card::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 10px; height: 10px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+    }
+    .info-tooltip-wrap:hover .info-tooltip-card,
+    .info-tooltip-wrap:focus-within .info-tooltip-card {
+      display: block;
+    }
+    .info-tooltip-card strong {
+      color: var(--accent-light);
+      font-weight: 600;
+    }
+    .info-tooltip-card ul {
+      margin: 0.35rem 0 0 0;
+      padding-left: 1.1rem;
+    }
+    .info-tooltip-card li {
+      margin-bottom: 0.2rem;
+    }
+
     .icon-capacity { background: rgba(81, 207, 102, 0.15); color: var(--success); }
 
     .tshirt-table { max-width: 560px; }
@@ -1087,6 +1161,7 @@
     <div class="section-title">
       <span class="icon" style="background:rgba(255,107,107,0.15);color:var(--danger);">&#9733;</span>
       T-Shirt Size Guide
+      <span class="info-tooltip-wrap" onclick="event.stopPropagation()"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>What is this?</strong><br>A reference table mapping t-shirt sizes (XS–XL) to estimated durations in weeks and working days. Based on the <em>SuperBet P&amp;T Roadmapping Handbook</em>.<ul><li>This table is <strong>read-only</strong> — it reflects company-wide standards.</li><li>Use it as a guide when sizing initiatives and squad capacity.</li><li>The <strong>Midpoint</strong> is used internally to convert t-shirt sizes into working days for capacity and Gantt calculations.</li></ul></div></span>
       <span class="section-chevron">&#9660;</span>
     </div>
   </div>
@@ -1112,6 +1187,7 @@
     <div class="section-title">
       <span class="icon icon-capacity">&#9881;</span>
       Player Capacity
+      <span class="info-tooltip-wrap" onclick="event.stopPropagation()"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>What is this?</strong><br>Defines the available engineering capacity for the selected quarter, broken down by tribe and squad.<ul><li>Click a <strong>tribe row</strong> to expand and see its squads.</li><li>For each squad, select a <strong>t-shirt size</strong> (XS–XL) and a <strong>count</strong> (number of engineers/efforts) for both BE and FE.</li><li>Tribe summary rows automatically aggregate squad data, showing a breakdown like <em>S&times;3 M&times;2</em>.</li><li>The <strong>Player (Total)</strong> row sums all tribes.</li><li>This data feeds into the <em>% Capacity</em> column in the Initiatives table.</li></ul></div></span>
       <span class="section-chevron">&#9660;</span>
     </div>
   </div>
@@ -1154,6 +1230,7 @@
     <div class="section-title">
       <span class="icon icon-initiatives">&#9733;</span>
       Initiatives
+      <span class="info-tooltip-wrap" onclick="event.stopPropagation()"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>What is this?</strong><br>The planning table for all quarterly initiatives. Each row represents a piece of work to be delivered.<ul><li><strong>Initiative Name</strong> — a descriptive title (resizable column).</li><li><strong>Category</strong> — classify as Carry Forward, KTLO, Scalability, Product Improvements, RO Migration, or Innovation.</li><li><strong>Tribe(s)</strong> — select one or more tribes involved (multi-select).</li><li><strong>Estimate</strong> — pick a t-shirt size + count for BE and FE effort.</li><li><strong>% Capacity</strong> — auto-calculated based on estimates vs. Player Capacity.</li><li><strong>Priority</strong> — P0 (critical) through P3 or NA. Sortable.</li><li><strong>PRD</strong> — paste a link or upload a document.</li></ul>Use <em>+ Add Initiative</em> to add rows. Use <em>Refresh from Jira</em> to pull live data.</div></span>
       <span class="section-chevron">&#9660;</span>
     </div>
     <div style="display:flex;gap:0.75rem;align-items:center;" onclick="event.stopPropagation()">
@@ -1204,6 +1281,7 @@
     <div class="section-title">
       <span class="icon" style="background:rgba(255,169,77,0.15);color:#ffa94d;">&#9638;</span>
       Allocation by Category
+      <span class="info-tooltip-wrap" onclick="event.stopPropagation()"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>What is this?</strong><br>An auto-generated breakdown showing how each tribe's estimated effort is distributed across initiative categories.<ul><li>Rows represent tribes; columns represent categories (Carry Forward, KTLO, Scalability, etc.).</li><li>Values are <strong>percentages</strong> of each tribe's total estimated t-shirt count allocated to that category.</li><li>The <strong>Player (Total)</strong> row shows an overall weighted average across all tribes.</li><li>This table is <strong>read-only</strong> — it updates automatically as you add or edit initiatives.</li></ul>Use it to check whether investment is balanced across categories or skewed.</div></span>
       <span class="section-chevron">&#9660;</span>
     </div>
   </div>
@@ -1218,6 +1296,7 @@
     <div class="section-title">
       <span class="icon icon-gantt">&#9776;</span>
       Timeline &mdash; Gantt Chart
+      <span class="info-tooltip-wrap" onclick="event.stopPropagation()"><button class="info-tooltip-btn" tabindex="0">?</button><div class="info-tooltip-card"><strong>What is this?</strong><br>A visual timeline showing when each initiative runs within the selected quarter.<ul><li>Bars represent initiative duration, calculated from the maximum BE/FE estimate using the t-shirt midpoint in working days.</li><li>Initiatives are ordered by <strong>priority</strong> (P0 first) and start sequentially on the next working day.</li><li><strong>Weekends and UK bank holidays</strong> are excluded from duration calculations.</li><li>Use the <strong>Filter by Tribe</strong> dropdown to view a specific tribe, multi-tribe initiatives, or all.</li><li>The Initiative column is <strong>resizable</strong>; hover on a bar to see the full name and date range.</li></ul></div></span>
       <span class="section-chevron">&#9660;</span>
     </div>
     <div style="display:flex;align-items:center;gap:0.75rem;" onclick="event.stopPropagation()">
@@ -1527,8 +1606,99 @@ function toggleTribeExpand(tribe, evt) {
 }
 
 function addInitiativeRow() {
-  initiativeRows.push({ id: nextInitId++, name: '', category: CATEGORIES[0], tribes: [], est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0, priority: 'P1', jiraStartDate: null, jiraDueDate: null, jiraStatus: null, jiraKey: null, prd: null, prdFileName: null });
+  const row = { id: nextInitId++, name: '', category: CATEGORIES[0], tribes: [], est_BE_size: '', est_BE_count: 0, est_FE_size: '', est_FE_count: 0, priority: 'P1', jiraStartDate: null, jiraDueDate: null, jiraStatus: null, jiraKey: null, prd: null, prdFileName: null };
+  initiativeRows.push(row);
   renderAll();
+}
+
+// ── Jira Issue Creation (scaffolding — awaiting field mapping) ──
+
+// Maps planner fields to Jira issue fields.
+// TODO: populate once field mapping is provided by user.
+// Expected shape: { jiraProject: 'PLAYER', issueType: 'Story', fieldMap: { name: 'summary', priority: 'priority', ... } }
+const JIRA_CREATE_CONFIG = {
+  defaultProject: 'PLAYER',
+  issueType: 'Story',
+  fieldMap: {
+    // planner field → Jira field id/key
+    // name:     'summary',
+    // priority: 'priority',
+    // category: '<custom_field_id>',
+    // tribes:   '<custom_field_id>',
+    // est_BE_size: '<custom_field_id>',
+    // est_FE_size: '<custom_field_id>',
+  },
+  projectOverrides: {
+    // tribe → project key override, e.g. 'Fraud': 'FRAUD'
+  }
+};
+
+function buildJiraPayload(row) {
+  const cfg = JIRA_CREATE_CONFIG;
+  const project = (cfg.projectOverrides[row.tribes?.[0]] || cfg.defaultProject);
+  const fields = {
+    project: { key: project },
+    issuetype: { name: cfg.issueType },
+    summary: row.name || 'Untitled Initiative',
+  };
+
+  // TODO: map remaining fields once field mapping is provided
+  // Object.entries(cfg.fieldMap).forEach(([plannerKey, jiraFieldId]) => {
+  //   fields[jiraFieldId] = row[plannerKey];
+  // });
+
+  return { fields };
+}
+
+async function createJiraIssue(rowId) {
+  if (!hasJiraConfig()) { openJiraModal(); return null; }
+
+  const row = initiativeRows.find(r => r.id === rowId);
+  if (!row) return null;
+  if (!row.name || !row.name.trim()) {
+    alert('Please enter an initiative name before creating a Jira issue.');
+    return null;
+  }
+  if (row.jiraKey) {
+    alert(`This initiative is already linked to ${row.jiraKey}`);
+    return null;
+  }
+
+  const config = getJiraConfig();
+  const auth = btoa(`${config.email}:${config.token}`);
+  const PROXY = 'http://127.0.0.1:8788';
+  const payload = buildJiraPayload(row);
+
+  try {
+    const targetUrl = `https://${config.domain}/rest/api/3/issue`;
+    const resp = await fetch(PROXY, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+        'Target-URL': targetUrl
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const errBody = await resp.text();
+      console.error('Jira create failed:', resp.status, errBody);
+      alert(`Failed to create Jira issue (${resp.status}). Check console for details.`);
+      return null;
+    }
+
+    const data = await resp.json();
+    row.jiraKey = data.key;
+    row.jiraStatus = 'To Do';
+    row.jiraStartDate = new Date().toISOString().slice(0, 10);
+    renderAll();
+    return data.key;
+  } catch (e) {
+    console.error('Jira create error:', e);
+    alert('Failed to create Jira issue. Is the CORS proxy running?');
+    return null;
+  }
 }
 
 function toggleTribe(id, tribe, evt) {
@@ -2286,24 +2456,7 @@ async function refreshFromJira() {
   setTimeout(() => { btn.innerHTML = origHTML; }, 3500);
 }
 
-const JIRA_INITIATIVES = [
-  // Wallet Core
-  { name: 'Segmented Boost Tokens', key: 'PLAYER-859', tribes: ['Transact'], priority: 'P2', dueDate: '2025-12-31', created: '2025-09-26', status: 'In Delivery' },
-  { name: '[RO] Open Bets (MIGRATION)', key: 'PLAYER-892', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
-  { name: '[RO] Transaction History (MIGRATION)', key: 'PLAYER-893', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
-  { name: '[RO] Player Balance Migration (MIGRATION)', key: 'PLAYER-886', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
-  { name: 'Stake Progressions (Wagering limits) (MIGRATION)', key: 'PLAYER-891', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Delivery', category: 'RO Migration' },
-  { name: 'Non-KYC lifetime limit (MIGRATION)', key: 'PLAYER-885', tribes: ['Transact'], priority: 'P0', dueDate: '2026-06-30', created: '2026-02-18', status: 'In Definition', category: 'RO Migration' },
-  { name: 'Snapshot Reduction in preparation for additional RO data (Wallet and PA)', key: 'PLAYER-1023', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-03', status: 'To Do', category: 'Scalability' },
-  { name: 'Reporting data integrity', key: 'PLAYER-1025', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-03', status: 'To Do' },
-  { name: 'Minimalist state and resilience wallet - Q2 Spill over', key: 'PLAYER-1061', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'To Do', category: 'Carry Forward' },
-  { name: 'Integration Testing - Wallet', key: 'PLAYER-1064', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'In Delivery' },
-  // Wallet Integrations
-  { name: 'Bulk Balance management [Wallet]', key: 'PLAYER-1000', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-02-20', status: 'To Do', category: 'RO Migration' },
-  { name: 'Greece hypercare/aftercare - Transact', key: 'PLAYER-946', tribes: ['Transact'], priority: 'P2', dueDate: '2026-05-15', created: '2026-02-24', status: 'To Do' },
-  { name: 'Wallet: Negative balance handling', key: 'PLAYER-1013', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-02', status: 'To Do' },
-  { name: 'On demand Balance - consolidation wallet', key: 'PLAYER-1062', tribes: ['Transact'], priority: 'P2', dueDate: '2026-06-30', created: '2026-03-06', status: 'To Do' },
-];
+const JIRA_INITIATIVES = [];
 
 function loadJiraDefaults() {
   JIRA_INITIATIVES.forEach(init => {
