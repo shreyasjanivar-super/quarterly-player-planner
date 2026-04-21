@@ -1239,11 +1239,11 @@ const EXTRA_TRIBES = ['Gaming', 'Sports', 'Social', 'Data', 'Design'];
 const ALL_TRIBE_OPTIONS = [...TRIBES, ...EXTRA_TRIBES];
 
 const TRIBE_SQUADS = {
-  'Manage': ['Manage A', 'Manage B', 'Manage C', 'Manage D'],
-  'Engagement': ['Engagement Integrations', 'Grayskull (Bonus)', 'Thundercats (Promo)', 'Engagement Platform', 'Loyalty'],
-  'Transact': ['Transact A', 'Transact B', 'Transact C', 'Transact D'],
-  'Fraud': ['Fraud A', 'Fraud B', 'Fraud C', 'Fraud D'],
-  'Retail': ['Retail A', 'Retail B', 'Retail C', 'Retail D'],
+  'Manage': ['Player Onboarding', 'Player Identity', 'Player Account', 'Manage Platform'],
+  'Engagement': ['Greyskull', 'Thundercats', 'Bonus Integration', 'Mobius', 'Gamification', 'SB Club Migration'],
+  'Transact': ['Wallet', 'Payment Integration', 'Payment Platform', 'Payment Experience', 'Card Experience', 'Greece'],
+  'Fraud': ['Fraud Prevention'],
+  'Retail': ['Retail Sports Experience', 'Retail Gaming Experience', 'Retail Operations Experience', 'Retail Platform Foundations', 'Retail Added Value Experience', 'Retail Terminals Platform'],
 };
 
 const expandedTribes = new Set();
@@ -2413,32 +2413,31 @@ function applyAppState(state) {
   if (state.year) document.getElementById('year-select').value = state.year;
 
   if (state.capacity && Array.isArray(state.capacity)) {
-    if (state.capacity.some(r => r.squad)) {
-      capacityRows = state.capacity.map((r, i) => ({
-        id: i + 1,
-        tribe: r.tribe || '',
-        squad: r.squad || null,
-        BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
-        FE_size: r.FE_size || '', FE_count: r.FE_count || 0
-      }));
-    } else {
-      capacityRows = [];
-      state.capacity.forEach((r, i) => {
-        const tribe = r.tribe || TRIBES[i] || '';
-        const squads = TRIBE_SQUADS[tribe];
-        if (squads) {
-          squads.forEach(sq => {
-            capacityRows.push({ id: capacityRows.length + 1, tribe, squad: sq, BE_size: '', BE_count: 0, FE_size: '', FE_count: 0 });
-          });
-        } else {
+    const savedByKey = {};
+    state.capacity.forEach(r => {
+      if (r.tribe && r.squad) savedByKey[r.tribe + '||' + r.squad] = r;
+    });
+    capacityRows = [];
+    TRIBES.forEach(tribe => {
+      const squads = TRIBE_SQUADS[tribe];
+      if (squads) {
+        squads.forEach(sq => {
+          const saved = savedByKey[tribe + '||' + sq];
           capacityRows.push({
-            id: capacityRows.length + 1, tribe, squad: null,
-            BE_size: r.BE_size || '', BE_count: r.BE_count || 0,
-            FE_size: r.FE_size || '', FE_count: r.FE_count || 0
+            id: capacityRows.length + 1, tribe, squad: sq,
+            BE_size: saved ? (saved.BE_size || '') : '', BE_count: saved ? (saved.BE_count || 0) : 0,
+            FE_size: saved ? (saved.FE_size || '') : '', FE_count: saved ? (saved.FE_count || 0) : 0
           });
-        }
-      });
-    }
+        });
+      } else {
+        const saved = state.capacity.find(r => r.tribe === tribe && !r.squad);
+        capacityRows.push({
+          id: capacityRows.length + 1, tribe, squad: null,
+          BE_size: saved ? (saved.BE_size || '') : '', BE_count: saved ? (saved.BE_count || 0) : 0,
+          FE_size: saved ? (saved.FE_size || '') : '', FE_count: saved ? (saved.FE_count || 0) : 0
+        });
+      }
+    });
     nextCapId = capacityRows.length + 1;
   }
 
